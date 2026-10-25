@@ -4,8 +4,6 @@
 const envOr = (value: string | undefined, fallback: string): string =>
   value !== undefined && value !== '' ? value : fallback
 
-const isCapacitor = process.env.APP_BUILD === 'capacitor'
-
 // Derive origins for CSP from environment variables (dev defaults)
 const apiOrigin = new URL(envOr(process.env.API_BASE_URL, 'http://localhost:8080/api/v1')).origin
 const wsOrigin = apiOrigin.replace(/^http/u, 'ws')
@@ -27,9 +25,7 @@ export default defineNuxtConfig({
   future: {
     compatibilityVersion: 4,
   },
-  // SPA mode required for Capacitor (Android WebView loads static files)
   ssr: false,
-  ignore: ['plugins/capacitor-sunmi-printer/**'],
   devtools: { enabled: true },
   modules: ['@nuxt/ui', '@nuxtjs/i18n', '@pinia/nuxt', 'pinia-plugin-persistedstate/nuxt'],
 
@@ -62,10 +58,7 @@ export default defineNuxtConfig({
         process.env.DASHBOARD_ZITADEL_CLIENT_ID,
         envOr(process.env.ZITADEL_CLIENT_ID, ''),
       ),
-      zitadelNativeClientId: envOr(process.env.ZITADEL_NATIVE_CLIENT_ID, ''),
-      // Build target: 'web' (default) or 'capacitor' (Android/iOS native build)
-      appBuild: envOr(process.env.APP_BUILD, 'web'),
-      // Restaurant name printed on receipts (white-label). Read from a plain
+      // Restaurant name (white-label). Read from a plain
       // (non-NUXT_PUBLIC_) env var so it's baked at build time; the runtime
       // Override machinery never fires for this static SPA (served by Caddy).
       restaurantName: envOr(process.env.RESTAURANT_NAME, 'Tokyo Sushi Bar'),
@@ -95,11 +88,6 @@ export default defineNuxtConfig({
   },
 
   plugins: ['~/plugins/api', '~/plugins/gqlFetch'],
-  typescript: {
-    // Android/ holds the built Capacitor web bundle; with allowJs its minified
-    // globals (e.g. $fetch) would replace the real types.
-    tsConfig: { exclude: ['../android/**'] },
-  },
 
   i18n: {
     defaultLocale: 'fr',
@@ -125,10 +113,8 @@ export default defineNuxtConfig({
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_redirected',
-      // Capacitor WebViews drop redirect chains: restrict to root navigation only.
-      redirectOn: isCapacitor ? 'root' : 'all',
+      redirectOn: 'all',
     },
-    rootRedirect: isCapacitor ? 'fr' : undefined,
     baseUrl: process.env.DASHBOARD_BASE_URL,
     vueI18n: '../i18n.config.ts',
   },

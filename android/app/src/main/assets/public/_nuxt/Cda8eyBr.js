@@ -1,1 +1,0 @@
-import{u as f,x as s,p as i}from"./D5W0RE9U.js";function v(e){const{$gqlFetch:o}=f(),n=s(),a=s(!1),r=s();async function c(l={}){a.value=!0,r.value=void 0;try{const t=typeof e=="string"?e:i(e),u=await o(t,{variables:l});return n.value=u,u}catch(t){throw r.value=t,t}finally{a.value=!1}}return{mutate:c,data:n,loading:a,error:r}}export{v as u};

@@ -18,8 +18,7 @@
     "loadMore": "Load more",
     "back": "Back",
     "filters": "Filters",
-    "done": "Done",
-    "print": "Print"
+    "done": "Done"
   },
   "products": {
     "search": "Search Products",
@@ -98,17 +97,8 @@
     "updateTime": "Update Time",
     "asap": "ASAP",
     "orderManagement": "Order Management",
-    "print": {
-      "label": "Print",
-      "both": "Print Both",
-      "delivery": "Print Delivery Ticket",
-      "kitchen": "Print Kitchen Ticket"
-    },
     "confirmCancelTitle": "Confirm Cancellation",
     "confirmCancelMessage": "Are you sure you want to cancel this order?",
-    "printContinueTitle": "Tear off the kitchen ticket",
-    "printContinueMessage": "The kitchen ticket has been printed. Tear it off before continuing with the client ticket.",
-    "printContinueCta": "Print client ticket",
     "refundNotice": "A refund will be processed for online payments",
     "back": "Back",
     "confirm": "Confirm",
@@ -181,7 +171,6 @@
     "errors": {
       "updateFailed": "Failed to update order",
       "invalidTransition": "This status transition is not allowed for this order",
-      "printFailed": "Print failed",
       "paymentUpdateFailed": "Failed to update payment status",
       "orderingUpdateFailed": "Could not change the online ordering state",
       "paymentSettlementFailed": "The payment could not be refunded or cancelled at Mollie. The order was not changed, try again.",

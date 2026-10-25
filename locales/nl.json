@@ -4,7 +4,6 @@
     "cancel": "Annuleren",
     "save": "Opslaan",
     "create": "Aanmaken",
-    "print": "Afdrukken",
     "itemsPerPage": "Items per pagina",
     "name": "Naam",
     "description": "Beschrijving",
@@ -98,17 +97,8 @@
     "updateTime": "Tijd bijwerken",
     "asap": "Zo snel mogelijk",
     "orderManagement": "Bestelbeheer",
-    "print": {
-      "label": "Afdrukken",
-      "both": "Beide afdrukken",
-      "delivery": "Bezorgticket afdrukken",
-      "kitchen": "Keukenticket afdrukken"
-    },
     "confirmCancelTitle": "Annulering bevestigen",
     "confirmCancelMessage": "Weet u zeker dat u deze bestelling wilt annuleren?",
-    "printContinueTitle": "Scheur het keukenticket af",
-    "printContinueMessage": "Het keukenticket is afgedrukt. Scheur het af voordat u doorgaat met het klantenticket.",
-    "printContinueCta": "Klantenticket afdrukken",
     "refundNotice": "Een terugbetaling wordt verwerkt voor online betalingen",
     "back": "Terug",
     "confirm": "Bevestigen",
@@ -181,7 +171,6 @@
     "errors": {
       "updateFailed": "Bestelling bijwerken mislukt",
       "invalidTransition": "Deze statusovergang is niet toegestaan voor deze bestelling",
-      "printFailed": "Afdrukken mislukt",
       "paymentUpdateFailed": "Betalingsstatus bijwerken mislukt",
       "orderingUpdateFailed": "De status van online bestellingen kon niet worden gewijzigd",
       "paymentSettlementFailed": "De betaling kon niet worden terugbetaald of geannuleerd bij Mollie. De bestelling is niet gewijzigd, probeer het opnieuw.",

@@ -417,7 +417,7 @@
     >
       <template v-if="selectedOrder" #body>
         <div class="space-y-5">
-          <!-- 1. Header: identity + status + print -->
+          <!-- 1. Header: identity + status -->
           <div class="flex items-start justify-between">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1">
@@ -444,25 +444,6 @@
                   {{ t(`orders.status.${selectedOrder.status?.toLowerCase()}`) }}
                 </UBadge>
               </div>
-            </div>
-            <div class="flex shrink-0">
-              <UButton
-                icon="i-lucide-printer"
-                :label="t('orders.print.label')"
-                color="neutral"
-                size="lg"
-                class="rounded-r-none"
-                @click="printBoth"
-              />
-              <UDropdownMenu :items="printMenuItems">
-                <UButton
-                  icon="i-lucide-chevron-down"
-                  color="neutral"
-                  size="lg"
-                  class="rounded-l-none border-l border-default"
-                  square
-                />
-              </UDropdownMenu>
             </div>
           </div>
 
@@ -811,24 +792,6 @@
         </button>
       </div>
     </PiliBottomSheet>
-
-    <!-- Two-step print: tear kitchen ticket, then continue to client ticket -->
-    <UModal
-      v-model:open="showPrintContinueDialog"
-      :title="t('orders.printContinueTitle')"
-      :description="t('orders.printContinueMessage')"
-      :dismissible="false"
-      :ui="{ footer: 'flex justify-end gap-2' }"
-    >
-      <template #footer>
-        <UButton color="neutral" variant="solid" @click="cancelContinueClientPrint">
-          {{ t('orders.back') }}
-        </UButton>
-        <UButton color="primary" icon="i-lucide-printer" @click="continueToClientPrint">
-          {{ t('orders.printContinueCta') }}
-        </UButton>
-      </template>
-    </UModal>
   </div>
 </template>
 
@@ -914,11 +877,6 @@ const {
   confirmDisabled,
   confirmCancellation,
   cancelCancellation,
-  printBoth,
-  showPrintContinueDialog,
-  continueToClientPrint,
-  cancelContinueClientPrint,
-  printMenuItems,
 } = useOrderActions({
   onDone: () => {
     showOrderDetails.value = false

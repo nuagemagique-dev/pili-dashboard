@@ -1,4 +1,4 @@
-// useAuthCallback: the steps after a successful login (web callback page, Capacitor login page): load the signed-in
+// useAuthCallback: the steps after a successful login (the callback page): load the signed-in
 // user, let only admins in, remember them, go to the orders board. The GraphQL transport, the OIDC client and
 // navigation are the boundaries; the auth store (real Pinia) and the localised path are real.
 // Run: `vp test run tests/composables/useAuthCallback.nuxt.test.ts`.

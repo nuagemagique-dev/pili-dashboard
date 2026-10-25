@@ -1,5 +1,4 @@
-// passive-events plugin: every `touchstart` listener is registered as passive, so scrolling on the phone and the
-// Sunmi handheld never waits for a handler.
+// passive-events plugin: every `touchstart` listener is registered as passive, so scrolling on the phone never waits for a handler.
 // Run: `vp test run tests/plugins/passive-events.client.nuxt.test.ts`.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 

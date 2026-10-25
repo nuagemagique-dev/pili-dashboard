@@ -19,14 +19,6 @@
           formatTimeOnly(order.createdAt, locale)
         }}</span>
       </span>
-      <button
-        v-if="order"
-        type="button"
-        class="h-11 px-3.5 rounded-[10px] bg-accented active:bg-(--pili-pressed) text-sm font-bold"
-        @click="showPrintMenu = true"
-      >
-        {{ t('orders.print.label') }}
-      </button>
     </div>
 
     <!-- Loading -->
@@ -253,20 +245,6 @@
       </button>
     </div>
 
-    <!-- Print menu -->
-    <PiliBottomSheet v-model:open="showPrintMenu" :title="t('orders.print.label')">
-      <button
-        v-for="item in printMenuItems[0]"
-        :key="item.label"
-        type="button"
-        class="h-14 px-4 rounded-xl bg-accented active:bg-(--pili-pressed) text-base font-bold flex items-center gap-3 text-left"
-        @click="runPrint(item.click)"
-      >
-        <UIcon :name="item.icon" class="size-5 text-muted" />
-        {{ item.label }}
-      </button>
-    </PiliBottomSheet>
-
     <!-- Cancel confirmation -->
     <PiliBottomSheet
       :open="showCancelDialog"
@@ -294,31 +272,6 @@
           @click="confirmCancellation"
         >
           {{ confirmDisabled ? `${t('orders.confirm')} (${cancelDelay})` : t('orders.confirm') }}
-        </button>
-      </div>
-    </PiliBottomSheet>
-
-    <!-- Two-step print: tear the kitchen ticket, then print the client ticket -->
-    <PiliBottomSheet
-      :open="showPrintContinueDialog"
-      :title="t('orders.printContinueTitle')"
-      :dismissible="false"
-    >
-      <p class="text-[15px] text-muted leading-[1.45]">{{ t('orders.printContinueMessage') }}</p>
-      <div class="grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          class="h-14 rounded-xl bg-accented active:bg-(--pili-pressed) text-base font-bold"
-          @click="cancelContinueClientPrint"
-        >
-          {{ t('orders.back') }}
-        </button>
-        <button
-          type="button"
-          class="h-14 rounded-xl bg-primary text-inverted text-base font-bold"
-          @click="continueToClientPrint"
-        >
-          {{ t('orders.printContinueCta') }}
         </button>
       </div>
     </PiliBottomSheet>
@@ -426,10 +379,6 @@ const {
   openCancelDialog,
   confirmCancellation,
   cancelCancellation,
-  showPrintContinueDialog,
-  continueToClientPrint,
-  cancelContinueClientPrint,
-  printMenuItems,
 } = useOrderActions({
   onDone: (kind) => {
     if (kind === 'save') {
@@ -562,13 +511,6 @@ const saveTime = () => updateOrder()
 const barStatuses = computed<OrderStatus[]>(() =>
   hasDelta.value ? primaryStatuses.value.slice(-1) : primaryStatuses.value,
 )
-
-// Print menu sheet
-const showPrintMenu = ref(false)
-const runPrint = (fn: () => void) => {
-  showPrintMenu.value = false
-  fn()
-}
 
 const onCancelSheet = (open: boolean) => {
   if (!open) cancelCancellation()

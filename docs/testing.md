@@ -1,7 +1,7 @@
 # Unit tests and coverage
 
 Unit tests run with Vite+ (`vp test run`, vitest 5 inside). They cover the **TypeScript** of the dashboard: `composables`,
-`stores`, `plugins` (including `plugins/capacitor-sunmi-printer/src`), `middleware`, `utils` and `server`. `.vue` pages,
+`stores`, `plugins`, `middleware`, `utils` and `server`. `.vue` pages,
 layouts and components are not part of the unit metric.
 
 ```bash
@@ -33,10 +33,10 @@ Tests live under `tests/`, mirroring the source folder (`composables/useOidc.ts`
 `middleware/` and `stores/` and would register a test file there. One test file per module: add the case to the file that
 exists. The suffix picks the environment (the vitest "project"):
 
-| Suffix           | Project | Environment                              | For                                                                         |
-| ---------------- | ------- | ---------------------------------------- | --------------------------------------------------------------------------- |
-| `*.test.ts`      | `unit`  | plain Node, no Nuxt                      | pure code: `utils/`, stores without auto-imports, the Capacitor plugin stub |
-| `*.nuxt.test.ts` | `nuxt`  | the real dashboard Nuxt app in happy-dom | composables, plugins, route middleware, stores that use auto-imports        |
+| Suffix           | Project | Environment                              | For                                                                  |
+| ---------------- | ------- | ---------------------------------------- | -------------------------------------------------------------------- |
+| `*.test.ts`      | `unit`  | plain Node, no Nuxt                      | pure code: `utils/`, stores without auto-imports                     |
+| `*.nuxt.test.ts` | `nuxt`  | the real dashboard Nuxt app in happy-dom | composables, plugins, route middleware, stores that use auto-imports |
 
 Prefer the lightest project that works. Always `import { describe, expect, it, vi } from 'vite-plus/test'` (the lint rule
 `prefer-vite-plus-imports` enforces it). `~` and `@` resolve in every project.
@@ -64,16 +64,15 @@ import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { beforeEach, expect, it, vi } from 'vite-plus/test'
 ```
 
-| Need           | How                                                                                                                                                                                                                                                                              |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Runtime config | Fixed values from `tests/support/nuxtProject.ts` (`https://dash.test`, `https://api.dash.test/api/v1`...), whatever a developer has exported. A test reads what it asserts from `useRuntimeConfig()`; the object is mutable (`public.appBuild = 'capacitor'`), put it back after |
-| `$fetch`       | `const $fetchMock = vi.hoisted(() => vi.fn()); mockNuxtImport('$fetch', () => $fetchMock)`                                                                                                                                                                                       |
-| `$gqlFetch`    | wrap `useNuxtApp` with `withGqlFetch` (it is a read-only getter on the app), see `tests/helpers/gqlFetch.ts`                                                                                                                                                                     |
-| Navigation     | `mockNuxtImport('navigateTo', () => navigateTo)`, or `vi.mock('nuxt/app', ...)` when the file imports it from `'nuxt/app'` (the auth middleware)                                                                                                                                 |
-| i18n           | `vi.mock('vue-i18n', ...)` with `fakeI18n`: a test asserts WHICH message key was chosen, not its wording                                                                                                                                                                         |
-| OIDC (Zitadel) | `vi.mock('~/composables/useOidc', () => ({ useOidc: () => oidcMock }))`; to run the REAL `useOidc`, fake only the UserManager: `vi.mock('oidc-client-ts', async () => (await import('../helpers/fakeOidc')).oidcClientTsFake())`                                                 |
-| Capacitor      | `vi.mock('@capacitor/core', ...)` and the `@capacitor/*` plugin in use; `~/composables/usePlatform` can be mocked directly                                                                                                                                                       |
-| Time           | `vi.useFakeTimers({ toFake: ['Date'] })` and `vi.setSystemTime(...)`; restore with `vi.useRealTimers()`. Never sleep. A timezone: `process.env.TZ = 'Asia/Kolkata'` (restore it)                                                                                                 |
+| Need           | How                                                                                                                                                                                                                                            |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Runtime config | Fixed values from `tests/support/nuxtProject.ts` (`https://dash.test`, `https://api.dash.test/api/v1`...), whatever a developer has exported. A test reads what it asserts from `useRuntimeConfig()`; the object is mutable, put it back after |
+| `$fetch`       | `const $fetchMock = vi.hoisted(() => vi.fn()); mockNuxtImport('$fetch', () => $fetchMock)`                                                                                                                                                     |
+| `$gqlFetch`    | wrap `useNuxtApp` with `withGqlFetch` (it is a read-only getter on the app), see `tests/helpers/gqlFetch.ts`                                                                                                                                   |
+| Navigation     | `mockNuxtImport('navigateTo', () => navigateTo)`, or `vi.mock('nuxt/app', ...)` when the file imports it from `'nuxt/app'` (the auth middleware)                                                                                               |
+| i18n           | `vi.mock('vue-i18n', ...)` with `fakeI18n`: a test asserts WHICH message key was chosen, not its wording                                                                                                                                       |
+| OIDC (Zitadel) | `vi.mock('~/composables/useOidc', () => ({ useOidc: () => oidcMock }))`; to run the REAL `useOidc`, fake only the UserManager: `vi.mock('oidc-client-ts', async () => (await import('../helpers/fakeOidc')).oidcClientTsFake())`               |
+| Time           | `vi.useFakeTimers({ toFake: ['Date'] })` and `vi.setSystemTime(...)`; restore with `vi.useRealTimers()`. Never sleep. A timezone: `process.env.TZ = 'Asia/Kolkata'` (restore it)                                                               |
 
 `vi.mock` / `mockNuxtImport` are hoisted: the values they use must come from `vi.hoisted(...)`. A module that is mocked
 must be imported **after** the mocks: `const { default: plugin } = await import('~/plugins/gqlFetch')`.

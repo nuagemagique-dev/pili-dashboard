@@ -34,9 +34,6 @@ updates:
         patterns:
           - 'vite-plus'
           - '@voidzero-dev/*'
-      capacitor:
-        patterns:
-          - '@capacitor/*'
       # Every other non-major bump in one daily PR: one CI run instead of one per
       # package. Majors still get their own PR. Groups above take precedence.
       minor-and-patch:

@@ -440,89 +440,6 @@ export function useOrderActions(options: UseOrderActionsOptions = {}) {
     }
   }
 
-  // Printing
-  const { printDelivery: sunmiPrintDelivery, printKitchen: sunmiPrintKitchen } = useSunmiPrinter()
-
-  const printDelivery = async () => {
-    if (!selectedOrder.value) return
-    try {
-      await sunmiPrintDelivery(selectedOrder.value)
-    } catch (error) {
-      if (import.meta.dev) console.error('Print failed:', error)
-      toast.add({ title: t('orders.errors.printFailed'), color: 'error' })
-    }
-  }
-
-  const printKitchen = async () => {
-    if (!selectedOrder.value) return
-    try {
-      await sunmiPrintKitchen(selectedOrder.value)
-    } catch (error) {
-      if (import.meta.dev) console.error('Kitchen print failed:', error)
-      toast.add({ title: t('orders.errors.printFailed'), color: 'error' })
-    }
-  }
-
-  // Two-step print flow: kitchen, confirm, then client. Required on devices
-  // without an auto-cutter (Sunmi V3H) so the operator can tear the kitchen
-  // ticket before the client ticket prints and the two sheets are not stuck
-  // together.
-  const showPrintContinueDialog = ref(false)
-  const printContinueOrderId = ref<string | null>(null)
-
-  const printBoth = async () => {
-    if (!selectedOrder.value) return
-    try {
-      await sunmiPrintKitchen(selectedOrder.value)
-      printContinueOrderId.value = selectedOrder.value.id
-      showPrintContinueDialog.value = true
-    } catch (error) {
-      if (import.meta.dev) console.error('Kitchen print failed:', error)
-      toast.add({ title: t('orders.errors.printFailed'), color: 'error' })
-    }
-  }
-
-  const continueToClientPrint = async () => {
-    showPrintContinueDialog.value = false
-    const orderId = printContinueOrderId.value
-    printContinueOrderId.value = null
-    if (!hasText(orderId)) return
-    const order = ordersStore.orders.find((o) => o.id === orderId) ?? selectedOrder.value
-    if (!order) return
-    try {
-      await sunmiPrintDelivery(order)
-    } catch (error) {
-      if (import.meta.dev) console.error('Client print failed:', error)
-      toast.add({ title: t('orders.errors.printFailed'), color: 'error' })
-    }
-  }
-
-  const cancelContinueClientPrint = () => {
-    showPrintContinueDialog.value = false
-    printContinueOrderId.value = null
-  }
-
-  // Print menu items (desktop dropdown and mobile sheet)
-  const printMenuItems = computed(() => [
-    [
-      {
-        label: t('orders.print.both'),
-        icon: 'i-lucide-printer',
-        click: () => printBoth(),
-      },
-      {
-        label: t('orders.print.delivery'),
-        icon: 'i-lucide-truck',
-        click: () => printDelivery(),
-      },
-      {
-        label: t('orders.print.kitchen'),
-        icon: 'i-lucide-chef-hat',
-        click: () => printKitchen(),
-      },
-    ],
-  ])
-
   onUnmounted(() => {
     if (cancelTimer !== undefined) {
       clearInterval(cancelTimer)
@@ -559,12 +476,5 @@ export function useOrderActions(options: UseOrderActionsOptions = {}) {
     openCancelDialog,
     confirmCancellation,
     cancelCancellation,
-    printDelivery,
-    printKitchen,
-    printBoth,
-    showPrintContinueDialog,
-    continueToClientPrint,
-    cancelContinueClientPrint,
-    printMenuItems,
   }
 }

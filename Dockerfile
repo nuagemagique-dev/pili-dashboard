@@ -28,9 +28,6 @@ ENV VP_GIT_HOOKS=0
 RUN npm install -g pnpm@12.15.0
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
-# The Sunmi printer plugin is a `file:` dependency, so its manifest must exist
-# at install time.
-COPY plugins/capacitor-sunmi-printer ./plugins/capacitor-sunmi-printer
 
 RUN pnpm install --frozen-lockfile
 
