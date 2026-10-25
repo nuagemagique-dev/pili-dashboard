@@ -1,5 +1,4 @@
 // Types/types.d.ts
-import type { DocumentNode } from 'graphql'
 import type { Router } from 'vue-router'
 
 declare module '#app' {
@@ -7,7 +6,7 @@ declare module '#app' {
     $apiBaseUrl: () => string
     $api: <T = unknown>(request: string, options?: Record<string, unknown>) => Promise<T>
     $gqlFetch: <T = unknown>(
-      query: string | DocumentNode,
+      query: string,
       options?: { variables?: Record<string, unknown>; signal?: AbortSignal },
     ) => Promise<T>
     $router: Router

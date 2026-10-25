@@ -348,8 +348,6 @@
 
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { useI18n } from 'vue-i18n'
 import { brusselsDateISO, brusselsDateTimeLocalToISO, shiftBrusselsDate } from '~/utils/utils'
 
@@ -442,7 +440,7 @@ const selectPeriod = (period: HistPeriod | null) => {
 if (isMobile.value) applyPreset('today')
 
 // --- GraphQL ---
-const ORDER_HISTORY_QUERY = print(gql`
+const ORDER_HISTORY_QUERY = /* GraphQL */ `
   query OrderHistory($input: OrderHistoryInput) {
     orderHistory(input: $input) {
       summary {
@@ -463,7 +461,7 @@ const ORDER_HISTORY_QUERY = print(gql`
       }
     }
   }
-`)
+`
 
 const buildInput = (page: number): Record<string, unknown> => {
   const input: Record<string, unknown> = {

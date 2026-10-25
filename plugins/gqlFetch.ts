@@ -1,5 +1,4 @@
 // Plugins: gqlFetch.ts: OIDC Bearer token authentication via Zitadel
-import { type DocumentNode, print } from 'graphql'
 import {
   defineNuxtPlugin,
   navigateTo,
@@ -48,11 +47,11 @@ export default defineNuxtPlugin(() => {
 
   /** Typed helper: POST /graphql with Bearer token */
   const gqlFetch = async <T = unknown>(
-    query: string | DocumentNode,
+    query: string,
     { variables = {}, signal }: GqlOptions = {},
   ): Promise<T> => {
     const body = {
-      query: typeof query === 'string' ? query : print(query),
+      query,
       variables,
     }
 

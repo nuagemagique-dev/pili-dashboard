@@ -451,8 +451,6 @@ import {
   useNuxtApp,
 } from '#imports'
 import ProductDialog from '~/components/ProductDialog.vue'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { useI18n } from 'vue-i18n'
 
 const { $api } = useNuxtApp()
@@ -549,7 +547,7 @@ const columns = computed(() => [
   { accessorKey: 'actions', header: '', enableSorting: false },
 ])
 
-const PRODUCTS_QUERY = gql`
+const PRODUCTS_QUERY = /* GraphQL */ `
   query {
     products {
       id
@@ -592,7 +590,7 @@ const PRODUCTS_QUERY = gql`
   }
 `
 
-const PRODUCT_CATEGORIES_QUERY = gql`
+const PRODUCT_CATEGORIES_QUERY = /* GraphQL */ `
   query {
     productCategories {
       id
@@ -608,7 +606,7 @@ const PRODUCT_CATEGORIES_QUERY = gql`
   }
 `
 
-const CREATE_PRODUCT_MUTATION = gql`
+const CREATE_PRODUCT_MUTATION = /* GraphQL */ `
   mutation ($input: CreateProductInput!) {
     createProduct(input: $input) {
       id
@@ -651,7 +649,7 @@ const CREATE_PRODUCT_MUTATION = gql`
   }
 `
 
-const UPDATE_PRODUCT_MUTATION = gql`
+const UPDATE_PRODUCT_MUTATION = /* GraphQL */ `
   mutation ($id: ID!, $input: UpdateProductInput!) {
     updateProduct(id: $id, input: $input) {
       id
@@ -695,7 +693,7 @@ const UPDATE_PRODUCT_MUTATION = gql`
 `
 
 // Lightweight mutation for inline toggles
-const TOGGLE_PRODUCT_MUTATION = gql`
+const TOGGLE_PRODUCT_MUTATION = /* GraphQL */ `
   mutation ($id: ID!, $input: UpdateProductInput!) {
     updateProduct(id: $id, input: $input) {
       id
@@ -705,7 +703,7 @@ const TOGGLE_PRODUCT_MUTATION = gql`
   }
 `
 
-const SUB_PRODUCT_UPDATED = gql`
+const SUB_PRODUCT_UPDATED = /* GraphQL */ `
   subscription ProductUpdated {
     productUpdated {
       id
@@ -728,7 +726,7 @@ const SUB_PRODUCT_UPDATED = gql`
 
 // Fetch products
 const { data: dataProducts, pending } = await useGqlQuery<{ products: Product[] }>(
-  print(PRODUCTS_QUERY),
+  PRODUCTS_QUERY,
   {},
   { immediate: true, cache: true },
 )
@@ -737,7 +735,7 @@ const products = computed(() => dataProducts.value?.products ?? [])
 
 // Fetch categories
 const { data: dataCategories } = await useGqlQuery<{ productCategories: ProductCategory[] }>(
-  print(PRODUCT_CATEGORIES_QUERY),
+  PRODUCT_CATEGORIES_QUERY,
   {},
   { immediate: true },
 )
@@ -901,7 +899,7 @@ const handleCreate = async (newProductInput: CreateProductInput): Promise<Produc
   try {
     if (image instanceof File) {
       const form = buildGraphqlUpload({
-        query: print(CREATE_PRODUCT_MUTATION),
+        query: CREATE_PRODUCT_MUTATION,
         variables: { input: productData },
         fileVariable: 'input.image',
         file: image,
@@ -956,7 +954,7 @@ const handleUpdate = async (updateReq: UpdateProductRequest) => {
   try {
     if (image instanceof File) {
       const form = buildGraphqlUpload({
-        query: print(UPDATE_PRODUCT_MUTATION),
+        query: UPDATE_PRODUCT_MUTATION,
         variables: { id, input: productData },
         fileVariable: 'input.image',
         file: image,
@@ -1009,7 +1007,7 @@ const handleUpdate = async (updateReq: UpdateProductRequest) => {
 
 // Subscribe in setup so onScopeDispose ties to the component scope; in onMounted it leaks the WebSocket.
 const { data: liveProduct } = useGqlSubscription<{ productUpdated: Partial<Product> }>(
-  print(SUB_PRODUCT_UPDATED),
+  SUB_PRODUCT_UPDATED,
 )
 watch(liveProduct, (val) => {
   if (!val?.productUpdated?.id || !dataProducts.value?.products) return

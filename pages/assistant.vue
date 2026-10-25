@@ -178,8 +178,6 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { renderSVG } from 'uqr'
 import type { PiliChipTone } from '~/components/pili/PiliChip.vue'
 import {
@@ -212,29 +210,29 @@ const LINK_FIELDS = `
   }
 `
 
-const START_LINK = print(gql`
+const START_LINK = /* GraphQL */ `
   mutation StartAssistantLink {
     startAssistantLink {
       ${LINK_FIELDS}
     }
   }
-`)
+`
 
-const LINK_STATUS = print(gql`
+const LINK_STATUS = /* GraphQL */ `
   query AssistantLink($id: String!) {
     assistantLink(id: $id) {
       ${LINK_FIELDS}
     }
   }
-`)
+`
 
-const REMOVE_ACCOUNT = print(gql`
+const REMOVE_ACCOUNT = /* GraphQL */ `
   mutation RemoveAssistantAccount($id: String!) {
     removeAssistantAccount(id: $id) {
       ${CONNECTION_FIELDS}
     }
   }
-`)
+`
 
 const link = ref<AssistantLink | null>(null)
 const qrPng = ref('')

@@ -631,9 +631,7 @@ import {
   type OpeningHoursMap,
   type ScheduleOverride,
 } from '~/utils/settings'
-import gql from 'graphql-tag'
 import { onBeforeRouteLeave } from 'vue-router'
-import { print } from 'graphql'
 import { useI18n } from 'vue-i18n'
 
 const { t, locale } = useI18n()
@@ -713,7 +711,7 @@ const sheetUi = computed(() =>
     : { content: 'max-w-md' },
 )
 
-const GET_CONFIG = gql`
+const GET_CONFIG = /* GraphQL */ `
   query {
     restaurantConfig {
       orderingEnabled
@@ -724,7 +722,7 @@ const GET_CONFIG = gql`
   }
 `
 
-const GET_OVERRIDES = gql`
+const GET_OVERRIDES = /* GraphQL */ `
   query ScheduleOverrides($from: DateTime!, $to: DateTime!) {
     scheduleOverrides(from: $from, to: $to) {
       date
@@ -741,7 +739,7 @@ const GET_OVERRIDES = gql`
   }
 `
 
-const UPDATE_ORDERING = gql`
+const UPDATE_ORDERING = /* GraphQL */ `
   mutation UpdateOrderingEnabled($enabled: Boolean!) {
     updateOrderingEnabled(enabled: $enabled) {
       orderingEnabled
@@ -749,7 +747,7 @@ const UPDATE_ORDERING = gql`
   }
 `
 
-const UPDATE_HOURS = gql`
+const UPDATE_HOURS = /* GraphQL */ `
   mutation UpdateOpeningHours($hours: OpeningHoursInput!) {
     updateOpeningHours(hours: $hours) {
       openingHours
@@ -757,7 +755,7 @@ const UPDATE_HOURS = gql`
   }
 `
 
-const UPDATE_ORDERING_HOURS = gql`
+const UPDATE_ORDERING_HOURS = /* GraphQL */ `
   mutation UpdateOrderingHours($hours: OpeningHoursInput!) {
     updateOrderingHours(hours: $hours) {
       orderingHours
@@ -765,7 +763,7 @@ const UPDATE_ORDERING_HOURS = gql`
   }
 `
 
-const UPDATE_PREPARATION = gql`
+const UPDATE_PREPARATION = /* GraphQL */ `
   mutation UpdatePreparationMinutes($minutes: Int!) {
     updatePreparationMinutes(minutes: $minutes) {
       preparationMinutes
@@ -773,7 +771,7 @@ const UPDATE_PREPARATION = gql`
   }
 `
 
-const UPSERT_OVERRIDE = gql`
+const UPSERT_OVERRIDE = /* GraphQL */ `
   mutation UpsertScheduleOverride($input: ScheduleOverrideInput!) {
     upsertScheduleOverride(input: $input) {
       date
@@ -790,7 +788,7 @@ const UPSERT_OVERRIDE = gql`
   }
 `
 
-const DELETE_OVERRIDE = gql`
+const DELETE_OVERRIDE = /* GraphQL */ `
   mutation DeleteScheduleOverride($date: DateTime!) {
     deleteScheduleOverride(date: $date)
   }
@@ -804,7 +802,7 @@ const loadConfig = async () => {
       orderingHours: OpeningHoursMap | null
       preparationMinutes: number
     }
-  }>(print(GET_CONFIG))
+  }>(GET_CONFIG)
   if (data) {
     syncing = true
     orderingEnabled.value = data.restaurantConfig.orderingEnabled
@@ -825,7 +823,7 @@ const loadConfig = async () => {
 const loadOverrides = async () => {
   const from = new Date().toISOString()
   const to = new Date(Date.now() + 366 * 24 * 60 * 60 * 1000).toISOString()
-  const data = await $gqlFetch<{ scheduleOverrides: ScheduleOverride[] }>(print(GET_OVERRIDES), {
+  const data = await $gqlFetch<{ scheduleOverrides: ScheduleOverride[] }>(GET_OVERRIDES, {
     variables: { from, to },
   })
   if (data) {
@@ -836,7 +834,7 @@ const loadOverrides = async () => {
 const toggleOrdering = async (enabled: boolean) => {
   updatingOrdering.value = true
   try {
-    await $gqlFetch(print(UPDATE_ORDERING), { variables: { enabled } })
+    await $gqlFetch(UPDATE_ORDERING, { variables: { enabled } })
     orderingEnabled.value = enabled
     sharedOrdering.value = enabled
   } finally {
@@ -865,7 +863,7 @@ const toggleCustomOrderingHours = (enabled: boolean) => {
 const saveOpeningHours = async () => {
   updatingHours.value = true
   try {
-    await $gqlFetch(print(UPDATE_HOURS), { variables: { hours: buildHoursInput(localHours) } })
+    await $gqlFetch(UPDATE_HOURS, { variables: { hours: buildHoursInput(localHours) } })
     openingHoursDirty.value = false
   } finally {
     updatingHours.value = false
@@ -875,7 +873,7 @@ const saveOpeningHours = async () => {
 const saveOrderingHours = async () => {
   updatingOrderingHours.value = true
   try {
-    await $gqlFetch(print(UPDATE_ORDERING_HOURS), {
+    await $gqlFetch(UPDATE_ORDERING_HOURS, {
       variables: { hours: buildHoursInput(localOrderingHours) },
     })
     orderingHoursDirty.value = false
@@ -895,7 +893,7 @@ const savePreparation = async () => {
   if (!isValidPreparation(preparationMinutes.value)) return
   updatingPreparation.value = true
   try {
-    await $gqlFetch(print(UPDATE_PREPARATION), { variables: { minutes: preparationMinutes.value } })
+    await $gqlFetch(UPDATE_PREPARATION, { variables: { minutes: preparationMinutes.value } })
     preparationDirty.value = false
   } finally {
     updatingPreparation.value = false
@@ -995,7 +993,7 @@ const saveOverride = async () => {
   savingOverride.value = true
   try {
     for (const input of buildOverrideInputs(form, dates)) {
-      await $gqlFetch(print(UPSERT_OVERRIDE), { variables: { input } })
+      await $gqlFetch(UPSERT_OVERRIDE, { variables: { input } })
     }
     modalOpen.value = false
     await loadOverrides()
@@ -1006,7 +1004,7 @@ const saveOverride = async () => {
 
 const deleteOverride = async (date: string) => {
   if (!confirm(t('settings.overrides.confirmDelete'))) return
-  await $gqlFetch(print(DELETE_OVERRIDE), { variables: { date } })
+  await $gqlFetch(DELETE_OVERRIDE, { variables: { date } })
   await loadOverrides()
 }
 
@@ -1028,7 +1026,7 @@ const overrideMenuItems = (ov: ScheduleOverride): DropdownMenuItem[][] => [
 
 const formatOverrideDate = (iso: string) => formatOverrideDateIn(iso, locale.value)
 
-const SUB_CONFIG_UPDATED = gql`
+const SUB_CONFIG_UPDATED = /* GraphQL */ `
   subscription RestaurantConfigUpdated {
     restaurantConfigUpdated {
       orderingEnabled
@@ -1039,7 +1037,7 @@ const SUB_CONFIG_UPDATED = gql`
   }
 `
 
-const SUB_OVERRIDES_UPDATED = gql`
+const SUB_OVERRIDES_UPDATED = /* GraphQL */ `
   subscription ScheduleOverridesUpdated {
     scheduleOverridesUpdated {
       date
@@ -1064,7 +1062,7 @@ const { data: liveConfig } = useGqlSubscription<{
     orderingHours: OpeningHoursMap | null
     preparationMinutes: number
   }
-}>(print(SUB_CONFIG_UPDATED))
+}>(SUB_CONFIG_UPDATED)
 watch(liveConfig, async (val) => {
   if (!val?.restaurantConfigUpdated) return
   const cfg = val.restaurantConfigUpdated
@@ -1089,7 +1087,7 @@ watch(liveConfig, async (val) => {
 
 const { data: liveOverrides } = useGqlSubscription<{
   scheduleOverridesUpdated: ScheduleOverride[]
-}>(print(SUB_OVERRIDES_UPDATED))
+}>(SUB_OVERRIDES_UPDATED)
 watch(liveOverrides, (val) => {
   if (val?.scheduleOverridesUpdated) {
     overrides.value = val.scheduleOverridesUpdated

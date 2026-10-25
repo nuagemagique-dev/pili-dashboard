@@ -5,7 +5,6 @@
 // Run: `vp test run tests/composables/useGqlSubscription.nuxt.test.ts`.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { effectScope } from 'vue'
-import gql from 'graphql-tag'
 import { useRuntimeConfig } from '#imports'
 import { setFlags } from '../support/flags'
 import { settle } from '../helpers/settle'
@@ -51,7 +50,7 @@ const h = vi.hoisted(() => ({
   getAccessToken: vi.fn<() => Promise<string | null>>(),
   isRenewalUnavailable: vi.fn<() => boolean>(),
 }))
-vi.mock('graphql-ws', () => ({ createClient: h.createClient }))
+vi.mock('graphql-ws/client', () => ({ createClient: h.createClient }))
 vi.mock('~/composables/useOidc', () => ({
   useOidc: () => ({
     getAccessToken: h.getAccessToken,
@@ -122,21 +121,6 @@ describe('subscribing', () => {
       query: SUB,
       variables: { restaurantId: 'r-1' },
     })
-  })
-
-  it('prints a parsed document', async () => {
-    const { subscribe } = await load()
-    subscribe(gql`
-      subscription OrderCreated {
-        orderCreated {
-          id
-        }
-      }
-    `)
-    await settle()
-    expect(clients()[0]!.subscriptions[0]!.payload.query).toMatch(
-      /^subscription OrderCreated \{\s+orderCreated \{\s+id\s+\}\s+\}\s*$/u,
-    )
   })
 
   it('shares ONE client between subscriptions, also when they start at the same time', async () => {

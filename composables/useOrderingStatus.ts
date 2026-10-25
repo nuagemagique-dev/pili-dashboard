@@ -1,31 +1,29 @@
 import { onMounted, ref, watch } from 'vue'
 import { useGqlSubscription, useNuxtApp, useState } from '#imports'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 
-const GET_ORDERING = print(gql`
+const GET_ORDERING = /* GraphQL */ `
   query OrderingStatus {
     restaurantConfig {
       orderingEnabled
     }
   }
-`)
+`
 
-const UPDATE_ORDERING = print(gql`
+const UPDATE_ORDERING = /* GraphQL */ `
   mutation UpdateOrderingEnabled($enabled: Boolean!) {
     updateOrderingEnabled(enabled: $enabled) {
       orderingEnabled
     }
   }
-`)
+`
 
-const SUB_ORDERING = print(gql`
+const SUB_ORDERING = /* GraphQL */ `
   subscription OrderingStatusUpdated {
     restaurantConfigUpdated {
       orderingEnabled
     }
   }
-`)
+`
 
 /**
  * Whether online ordering is open ("en ligne") or paused ("en pause").
