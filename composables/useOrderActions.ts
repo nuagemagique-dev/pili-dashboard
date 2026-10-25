@@ -108,7 +108,7 @@ export const ORDER_BY_ID_QUERY = print(gql`
 
 /**
  * Order actions shared by the desktop slideover and the mobile detail page:
- * status transitions, estimated ready time, payment, printing and cancellation.
+ * status transitions, estimated ready time, payment and cancellation.
  */
 export function useOrderActions(options: UseOrderActionsOptions = {}) {
   const { t, locale } = useI18n()

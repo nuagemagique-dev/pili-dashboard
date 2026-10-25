@@ -6,7 +6,7 @@ const root = (path: string) => resolve(import.meta.dirname, path)
 const excluded = ['**/node_modules/**', '**/.nuxt/**', '**/.output/**']
 
 // The files of the critical flows (auth, the GraphQL client, the orders store and the order actions and logic, money,
-// receipt printing, the date helpers) must not regress, whatever the rest gains: each is held at the level it reaches
+// the date helpers) must not regress, whatever the rest gains: each is held at the level it reaches
 // today, 100 % lines, statements, functions and branches, except the few arms of utils/utils.ts measured below 100
 // (listed in docs/testing.md). Only ever raise them.
 const full = { statements: 100, branches: 100, functions: 100, lines: 100 }

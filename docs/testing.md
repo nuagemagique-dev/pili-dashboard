@@ -16,7 +16,7 @@ pnpm test:coverage                             # coverage + thresholds (what CI 
 `coverage/lcov-report/index.html` is the browsable report. The thresholds in `vite.config.ts`
 (`test.coverage.thresholds`) only ever go up: a global floor of 99 % (so that one new defensive line somewhere does not
 fail CI), and one per file for the critical flows (`criticalFiles`: auth, the GraphQL client, the orders store and the
-order logic, money, the receipt printing): held at what they reach: 100 % lines, statements, functions and branches,
+order logic, money): held at what they reach: 100 % lines, statements, functions and branches,
 except one file: `utils/utils.ts` has 96 % of its branches, because of the `?? 1970` / `?? 0`
 fallbacks of `shiftBrusselsDate` / `timeToRFC3339` after `split`, which only run for a malformed date string.
 
@@ -109,7 +109,7 @@ This is a hybrid, not a server render: it proves the server BRANCH does the righ
 
 - Assert behaviour: return values, state, calls made with the right arguments, errors surfaced. A test that only calls a
   function to light up lines is rejected.
-- Critical flows (auth, the GraphQL client, orders, printing) cover every branch, error paths included.
+- Critical flows (auth, the GraphQL client, orders) cover every branch, error paths included.
 - Deterministic and fast: no real network, no sleeps, no dependence on test order or on the current date or timezone.
 - Don't change production behaviour for testability. A branch that cannot be reached is dead code: report it instead of
   adding an ignore comment.
