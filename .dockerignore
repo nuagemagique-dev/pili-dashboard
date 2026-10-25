@@ -1,0 +1,20 @@
+# The Dockerfile installs dependencies in the image, then COPYs the whole
+# context. Keep out everything a fresh checkout does not have: local installs
+# and build output (a macOS node_modules would overwrite the image's own),
+# secrets, VCS data and local tooling.
+node_modules
+.nuxt
+.output
+.nuxtrc
+coverage
+playwright-report
+test-results
+.env
+.env.*
+!.env.example
+.git
+.worktrees
+.claude
+.idea
+.vscode
+**/.DS_Store
