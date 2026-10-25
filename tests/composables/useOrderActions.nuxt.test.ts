@@ -1,7 +1,6 @@
 // useOrderActions: everything the staff does to an order from the board, the slideover or the mobile detail page:
 // status transitions (allowed moves, quick advance, kanban drop with optimistic update and rollback), the estimated ready
-// time slider, marking a payment as paid, the cancellation confirmation (with its delay) and the two-step kitchen /
-// customer printing. The GraphQL transport, the toasts, the printer and i18n are the boundaries; the orders store
+// time slider, marking a payment as paid, the cancellation confirmation (with its delay). The GraphQL transport, the toasts and i18n are the boundaries; the orders store
 // (real Pinia) is the state that is checked.
 // Run: `vp test run tests/composables/useOrderActions.nuxt.test.ts`.
 import type * as VueI18NModule from 'vue-i18n'
@@ -16,17 +15,12 @@ import { makeOrder } from '../fixtures/dashboard'
 
 const gqlFetch = vi.hoisted(() => vi.fn())
 const toast = vi.hoisted(() => ({ add: vi.fn() }))
-const printer = vi.hoisted(() => ({
-  printDelivery: vi.fn<(order: unknown) => Promise<void>>(),
-  printKitchen: vi.fn<(order: unknown) => Promise<void>>(),
-}))
 
 mockNuxtImport('useNuxtApp', async (original) => {
   const { withGqlFetch } = await import('../helpers/gqlFetch')
   return () => withGqlFetch(original(), gqlFetch)
 })
 mockNuxtImport('useToast', () => () => toast)
-mockNuxtImport('useSunmiPrinter', () => () => printer)
 vi.mock('vue-i18n', async (importOriginal) => {
   const { fakeI18n } = await import('../helpers/i18n')
   return { ...(await importOriginal<typeof VueI18NModule>()), useI18n: fakeI18n }
@@ -85,8 +79,6 @@ beforeEach(() => {
   setActivePinia(createPinia())
   vi.useFakeTimers({ toFake: ['Date', 'setInterval', 'clearInterval'] })
   vi.setSystemTime(NOW)
-  printer.printDelivery.mockResolvedValue()
-  printer.printKitchen.mockResolvedValue()
 })
 
 afterEach(() => {
@@ -142,7 +134,7 @@ describe('status helpers', () => {
     expect(ORDER_STATUS_CHIP_TONE.FAILED).toBe('danger')
   })
 
-  it('the single-order query asks for what the board and the printer need', () => {
+  it('the single-order query asks for what the board needs', () => {
     for (const field of [
       'status',
       'type',
@@ -880,176 +872,6 @@ describe('the cancellation dialog', () => {
       expect(store.orders[0]?.status).toBe('PENDING')
       expect(onDone).not.toHaveBeenCalled()
       expect(toasts()).toEqual([{ title: 'orders.errors.updateFailed', color: 'error' }])
-    })
-  })
-})
-
-describe('printing', () => {
-  describe('printDelivery and printKitchen', () => {
-    it('do nothing without a selected order', async () => {
-      const { actions } = setup()
-      await actions.printDelivery()
-      await actions.printKitchen()
-      expect(printer.printDelivery).not.toHaveBeenCalled()
-      expect(printer.printKitchen).not.toHaveBeenCalled()
-    })
-
-    it('print the selected order on the matching ticket', async () => {
-      const { actions, order } = selected()
-      await actions.printDelivery()
-      expect(printer.printDelivery).toHaveBeenCalledExactlyOnceWith(order)
-      expect(printer.printKitchen).not.toHaveBeenCalled()
-
-      await actions.printKitchen()
-      expect(printer.printKitchen).toHaveBeenCalledExactlyOnceWith(order)
-      expect(toast.add).not.toHaveBeenCalled()
-    })
-
-    it('show a "print failed" toast, logging in dev, when the printer fails', async () => {
-      const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-      const { actions } = selected()
-      printer.printDelivery.mockRejectedValue(new Error('out of paper'))
-      printer.printKitchen.mockRejectedValue(new Error('out of paper'))
-
-      await actions.printDelivery()
-      await actions.printKitchen()
-      expect(toasts()).toEqual([
-        { title: 'orders.errors.printFailed', color: 'error' },
-        { title: 'orders.errors.printFailed', color: 'error' },
-      ])
-      expect(error).not.toHaveBeenCalled()
-
-      setFlags({ dev: true })
-      await actions.printDelivery()
-      await actions.printKitchen()
-      expect(error.mock.calls.map(([message]) => message)).toEqual([
-        'Print failed:',
-        'Kitchen print failed:',
-      ])
-    })
-  })
-
-  describe('printBoth (kitchen, confirm, then customer: the V3H has no cutter)', () => {
-    it('does nothing without a selected order', async () => {
-      const { actions } = setup()
-      await actions.printBoth()
-      expect(printer.printKitchen).not.toHaveBeenCalled()
-      expect(actions.showPrintContinueDialog.value).toBe(false)
-    })
-
-    it('prints the kitchen ticket only, then asks whether to print the customer ticket', async () => {
-      const { actions, order } = selected()
-      await actions.printBoth()
-      expect(printer.printKitchen).toHaveBeenCalledExactlyOnceWith(order)
-      expect(printer.printDelivery).not.toHaveBeenCalled()
-      expect(actions.showPrintContinueDialog.value).toBe(true)
-    })
-
-    it('does not ask to continue, and shows a toast, when the kitchen ticket fails (logging in dev)', async () => {
-      const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-      const { actions } = selected()
-      printer.printKitchen.mockRejectedValue(new Error('out of paper'))
-
-      await actions.printBoth()
-      expect(actions.showPrintContinueDialog.value).toBe(false)
-      expect(toasts()).toEqual([{ title: 'orders.errors.printFailed', color: 'error' }])
-      expect(error).not.toHaveBeenCalled()
-
-      setFlags({ dev: true })
-      await actions.printBoth()
-      expect(error).toHaveBeenCalledExactlyOnceWith('Kitchen print failed:', expect.any(Error))
-    })
-
-    it('continueToClientPrint prints the customer ticket with the freshest version of the order, and closes the dialog', async () => {
-      const { actions, store } = selected({ status: 'PENDING' })
-      await actions.printBoth()
-      store.updateOrder({ id: 'o-1', status: 'CONFIRMED' })
-
-      await actions.continueToClientPrint()
-
-      expect(actions.showPrintContinueDialog.value).toBe(false)
-      expect(printer.printDelivery).toHaveBeenCalledExactlyOnceWith(
-        expect.objectContaining({ id: 'o-1', status: 'CONFIRMED' }),
-      )
-    })
-
-    it('falls back to the selected order when the order has left the board meanwhile', async () => {
-      const { actions, store, order } = selected()
-      await actions.printBoth()
-      store.setOrders([])
-
-      await actions.continueToClientPrint()
-
-      expect(printer.printDelivery).toHaveBeenCalledExactlyOnceWith(order)
-    })
-
-    it('continueToClientPrint prints nothing when no kitchen ticket was printed first', async () => {
-      const { actions } = selected()
-      await actions.continueToClientPrint()
-      expect(printer.printDelivery).not.toHaveBeenCalled()
-      expect(actions.showPrintContinueDialog.value).toBe(false)
-    })
-
-    it('continueToClientPrint prints once: the pending order is forgotten', async () => {
-      const { actions } = selected()
-      await actions.printBoth()
-      await actions.continueToClientPrint()
-      await actions.continueToClientPrint()
-      expect(printer.printDelivery).toHaveBeenCalledOnce()
-    })
-
-    it('prints nothing when no order is left to print (not on the board, nothing selected)', async () => {
-      const { actions, store } = selected()
-      await actions.printBoth()
-      store.setOrders([])
-      actions.selectedOrder.value = null
-      await actions.continueToClientPrint()
-      expect(printer.printDelivery).not.toHaveBeenCalled()
-    })
-
-    it('shows a toast, logging in dev, when the customer ticket fails', async () => {
-      const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-      const { actions } = selected()
-      printer.printDelivery.mockRejectedValue(new Error('out of paper'))
-
-      await actions.printBoth()
-      await actions.continueToClientPrint()
-      expect(toasts()).toEqual([{ title: 'orders.errors.printFailed', color: 'error' }])
-      expect(error).not.toHaveBeenCalled()
-
-      setFlags({ dev: true })
-      await actions.printBoth()
-      await actions.continueToClientPrint()
-      expect(error).toHaveBeenCalledExactlyOnceWith('Client print failed:', expect.any(Error))
-    })
-
-    it('cancelContinueClientPrint closes the dialog and forgets the pending order', async () => {
-      const { actions } = selected()
-      await actions.printBoth()
-      actions.cancelContinueClientPrint()
-      expect(actions.showPrintContinueDialog.value).toBe(false)
-      await actions.continueToClientPrint()
-      expect(printer.printDelivery).not.toHaveBeenCalled()
-    })
-  })
-
-  describe('printMenuItems', () => {
-    it('offers both, delivery and kitchen, in that order, each wired to its print', async () => {
-      const { actions } = selected()
-      const [group] = actions.printMenuItems.value
-      expect(group!.map((item) => [item.label, item.icon])).toEqual([
-        ['orders.print.both', 'i-lucide-printer'],
-        ['orders.print.delivery', 'i-lucide-truck'],
-        ['orders.print.kitchen', 'i-lucide-chef-hat'],
-      ])
-
-      await group![1]!.click()
-      expect(printer.printDelivery).toHaveBeenCalledOnce()
-      await group![2]!.click()
-      expect(printer.printKitchen).toHaveBeenCalledOnce()
-      await group![0]!.click()
-      expect(printer.printKitchen).toHaveBeenCalledTimes(2)
-      expect(actions.showPrintContinueDialog.value).toBe(true)
     })
   })
 })

@@ -1,13 +1,11 @@
 // useLoginFlow: the state machine of the login page. Email -> OTP code -> (staff with an authenticator app) TOTP code ->
 // OIDC finalize, with the in-flight guard, the cooldown of "resend", the mapping of failures to messages (429, mfa
-// required, unverified email, bad code) and the last step on the web (redirect to Zitadel's callback) versus Capacitor
-// (the code is exchanged in the WebView). The proxy calls (`useZitadelApi`), the OIDC client, the post-login steps and the
+// required, unverified email, bad code) and the last step (redirect to Zitadel's callback). The proxy calls (`useZitadelApi`), the OIDC client and the
 // route are the boundaries; the refs, the timer and i18n keys are what is checked.
 // Run: `vp test run tests/composables/useLoginFlow.nuxt.test.ts`.
 import type * as VueI18NModule from 'vue-i18n'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
-import { useRuntimeConfig } from '#imports'
 import { setFlags } from '../support/flags'
 import { mountComposable } from '../helpers/mountComposable'
 import { settle } from '../helpers/settle'
@@ -22,14 +20,11 @@ const zitadel = vi.hoisted(() => ({
 const oidc = vi.hoisted(() => ({
   getAuthRequestId: vi.fn<() => Promise<string>>(),
   signIn: vi.fn(),
-  exchangeCodeForTokens: vi.fn(),
 }))
-const authCallback = vi.hoisted(() => ({ processCallback: vi.fn() }))
 const route = vi.hoisted(() => ({ query: {} as Record<string, unknown> }))
 
 vi.mock('~/composables/useZitadelApi', () => ({ useZitadelApi: () => zitadel }))
 vi.mock('~/composables/useOidc', () => ({ useOidc: () => oidc }))
-vi.mock('~/composables/useAuthCallback', () => ({ useAuthCallback: () => authCallback }))
 mockNuxtImport('useRoute', () => () => route)
 vi.mock('vue-i18n', async (importOriginal) => {
   const { fakeI18n } = await import('../helpers/i18n')
@@ -58,13 +53,8 @@ const deferred = <T>() => {
 }
 
 const location = { href: '' }
-/** The runtime config of the app, mutable: `appBuild = 'capacitor'` is what the native build sets. */
-const publicConfig = () => useRuntimeConfig().public
-let originalBuild: string
-
 beforeEach(() => {
   vi.resetAllMocks()
-  originalBuild = publicConfig().appBuild
   route.query = { authRequestID: 'auth-req-1' }
   location.href = ''
   vi.stubGlobal('location', location)
@@ -77,12 +67,9 @@ beforeEach(() => {
   })
   oidc.getAuthRequestId.mockResolvedValue('fetched-req')
   oidc.signIn.mockResolvedValue(undefined)
-  oidc.exchangeCodeForTokens.mockResolvedValue(undefined)
-  authCallback.processCallback.mockResolvedValue({ ok: true })
 })
 
 afterEach(() => {
-  publicConfig().appBuild = originalBuild
   vi.useRealTimers()
 })
 
@@ -366,8 +353,6 @@ describe('verifyCode: the last step on the web', () => {
     expect(flow.otpSessionToken.value).toBe('tok-2')
     expect(zitadel.finalizeOidcAuth).toHaveBeenCalledExactlyOnceWith('auth-req-1', 's-2', 'tok-2')
     expect(location.href).toBe('https://zitadel.test/callback?code=abc&state=xyz')
-    // On the web the code is NOT exchanged here: the callback page does it.
-    expect(oidc.exchangeCodeForTokens).not.toHaveBeenCalled()
     expect(flow.errorMessage.value).toBe('')
   })
 
@@ -487,28 +472,8 @@ describe('verifyCode: the last step on the web', () => {
   })
 })
 
-describe('verifyCode: the last step on Capacitor', () => {
-  beforeEach(() => {
-    publicConfig().appBuild = 'capacitor'
-  })
-
-  it('exchanges the code of the callback URL for tokens in the WebView and runs the post-login steps', async () => {
-    const { flow } = await flowAtCodeStep()
-
-    await flow.verifyCode()
-
-    expect(zitadel.finalizeOidcAuth).toHaveBeenCalledExactlyOnceWith('auth-req-1', 's-2', 'tok-2')
-    expect(oidc.exchangeCodeForTokens).toHaveBeenCalledExactlyOnceWith('abc')
-    expect(authCallback.processCallback).toHaveBeenCalledTimes(1)
-    expect(oidc.exchangeCodeForTokens.mock.invocationCallOrder[0]).toBeLessThan(
-      authCallback.processCallback.mock.invocationCallOrder[0]!,
-    )
-    // The WebView must not navigate to the callback URL (it would lose the OIDC state).
-    expect(location.href).toBe('')
-    expect(flow.errorMessage.value).toBe('')
-  })
-
-  it('after a session expiry (?session=expired) it also finishes through the fetched authRequestId', async () => {
+describe('verifyCode: without an authRequestID from Zitadel', () => {
+  it('after a session expiry (?session=expired) it finishes through the fetched authRequestId', async () => {
     route.query = { session: 'expired' }
     oidc.getAuthRequestId.mockResolvedValue('fetched-req')
     const { flow } = await mountFlow()
@@ -520,86 +485,8 @@ describe('verifyCode: the last step on Capacitor', () => {
     await flow.verifyCode()
 
     expect(zitadel.finalizeOidcAuth).toHaveBeenCalledExactlyOnceWith('fetched-req', 's-2', 'tok-2')
-    expect(oidc.exchangeCodeForTokens).toHaveBeenCalledExactlyOnceWith('abc')
+    expect(location.href).toBe('https://zitadel.test/callback?code=abc&state=xyz')
     expect(oidc.signIn).not.toHaveBeenCalled()
-  })
-
-  it('tells a non-admin they have no access, and lets them retry', async () => {
-    authCallback.processCallback.mockResolvedValue({ ok: false, reason: 'not_admin' })
-    const { flow } = await flowAtCodeStep()
-
-    await flow.verifyCode()
-
-    expect(flow.errorMessage.value).toBe('login.accessDenied')
-    expect(flow.loading.value).toBe(false)
-    expect(flow.step.value).toBe('code')
-
-    authCallback.processCallback.mockResolvedValue({ ok: true })
-    await flow.verifyCode()
-    expect(zitadel.verifyOtpLogin).toHaveBeenCalledTimes(2)
-  })
-
-  it('shows a generic callback error when the user could not be loaded', async () => {
-    authCallback.processCallback.mockResolvedValue({ ok: false })
-    const { flow } = await flowAtCodeStep()
-    await flow.verifyCode()
-    expect(flow.errorMessage.value).toBe('login.callbackError')
-    expect(flow.loading.value).toBe(false)
-  })
-
-  it('fails with the invalid-code message when the callback URL carries no authorization code', async () => {
-    zitadel.finalizeOidcAuth.mockResolvedValue({ callbackUrl: 'https://zitadel.test/callback' })
-    const { flow } = await flowAtCodeStep()
-
-    await flow.verifyCode()
-
-    expect(oidc.exchangeCodeForTokens).not.toHaveBeenCalled()
-    expect(flow.errorMessage.value).toBe('login.invalidCode')
-    expect(flow.loading.value).toBe(false)
-  })
-
-  it('fails with the invalid-code message when the token exchange fails, and gets a fresh authRequestId for the retry', async () => {
-    oidc.exchangeCodeForTokens.mockRejectedValue(new Error('invalid_grant'))
-    oidc.getAuthRequestId.mockResolvedValue('fresh-req')
-    const { flow } = await flowAtCodeStep()
-
-    await flow.verifyCode()
-    expect(flow.errorMessage.value).toBe('login.invalidCode')
-    expect(authCallback.processCallback).not.toHaveBeenCalled()
-
-    // The retry finalizes with the fresh request id: the first one is spent.
-    oidc.exchangeCodeForTokens.mockResolvedValue(undefined)
-    zitadel.finalizeOidcAuth.mockClear()
-    await flow.verifyCode()
-    expect(zitadel.finalizeOidcAuth).toHaveBeenCalledWith('auth-req-1', 's-2', 'tok-2')
-  })
-
-  it('uses the refreshed authRequestId when Zitadel did not pass one', async () => {
-    route.query = {}
-    oidc.getAuthRequestId.mockResolvedValueOnce('mount-req').mockResolvedValue('fresh-req')
-    zitadel.verifyOtpLogin.mockRejectedValueOnce(httpError(401))
-    const { flow } = await mountFlow()
-    await settle()
-    flow.email.value = 'chef@example.com'
-    await flow.requestCode()
-    flow.code.value = '123456'
-
-    await flow.verifyCode()
-    expect(oidc.getAuthRequestId).toHaveBeenCalledTimes(2)
-    await flow.verifyCode()
-
-    expect(zitadel.finalizeOidcAuth).toHaveBeenCalledExactlyOnceWith('fresh-req', 's-2', 'tok-2')
-  })
-
-  it('keeps the original message when refreshing the authRequestId fails too', async () => {
-    zitadel.verifyOtpLogin.mockRejectedValue(httpError(429))
-    oidc.getAuthRequestId.mockRejectedValue(new Error('offline'))
-    const { flow } = await flowAtCodeStep()
-
-    await flow.verifyCode()
-
-    expect(flow.errorMessage.value).toBe('login.tooManyRequests')
-    expect(flow.loading.value).toBe(false)
   })
 })
 
@@ -628,15 +515,6 @@ describe('verifyTotp', () => {
     expect(flow.errorMessage.value).toBe('')
   })
 
-  it('finishes on Capacitor like the code step does', async () => {
-    publicConfig().appBuild = 'capacitor'
-    const { flow } = await flowAtTotpStep()
-    await flow.verifyTotp()
-    expect(oidc.exchangeCodeForTokens).toHaveBeenCalledExactlyOnceWith('abc')
-    expect(authCallback.processCallback).toHaveBeenCalledTimes(1)
-    expect(location.href).toBe('')
-  })
-
   it.each([
     ['a wrong code', httpError(401), 'login.invalidTotp'],
     ['a rate limit', httpError(429), 'login.tooManyRequests'],
@@ -652,25 +530,6 @@ describe('verifyTotp', () => {
     expect(flow.step.value).toBe('totp')
     expect(flow.loading.value).toBe(false)
     expect(zitadel.finalizeOidcAuth).not.toHaveBeenCalled()
-  })
-
-  it('gets a fresh authRequestId after a failure on Capacitor only', async () => {
-    zitadel.verifyOtpLogin.mockResolvedValue({
-      sessionId: 's-2',
-      sessionToken: 'tok-2',
-      requiresTotp: true,
-    })
-    const web = await flowAtCodeStep()
-    await web.flow.verifyCode()
-    zitadel.verifyTotpLogin.mockRejectedValue(httpError(401))
-    await web.flow.verifyTotp()
-    expect(oidc.getAuthRequestId).not.toHaveBeenCalled()
-
-    publicConfig().appBuild = 'capacitor'
-    const native = await flowAtCodeStep()
-    await native.flow.verifyCode()
-    await native.flow.verifyTotp()
-    expect(oidc.getAuthRequestId).toHaveBeenCalledTimes(1)
   })
 
   it('can be retried after a failure (the in-flight flag is released)', async () => {

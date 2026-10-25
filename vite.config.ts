@@ -19,8 +19,6 @@ const criticalFiles = {
   'composables/useGqlMutation.ts': full,
   'composables/useGqlSubscription.ts': full,
   'composables/useOrderActions.ts': full,
-  'composables/useSunmiPrinter.ts': full,
-  'composables/usePushNotifications.ts': full,
   'stores/auth.ts': full,
   'stores/orders.ts': full,
   'middleware/auth.global.ts': full,
@@ -75,9 +73,6 @@ export default defineConfig({
         '**/*.test.*',
         '**/*.d.ts',
         '**/*.config.ts',
-        'plugins/capacitor-sunmi-printer/android/**',
-        // Interfaces only, no runtime code.
-        'plugins/capacitor-sunmi-printer/src/definitions.ts',
       ],
       reporter: ['text-summary', 'json-summary', 'lcov'],
       reportsDirectory: 'coverage',
@@ -190,9 +185,6 @@ export default defineConfig({
       'node_modules',
       // Plain-JS tool copied verbatim into pili-shop and pili-mobile (see its header): not held to this app's rules.
       'scripts/check-graphql-operations.mjs',
-      'android/**/build',
-      'android/app/src/main/assets/public',
-      'android/capacitor-cordova-android-plugins',
       'coverage',
       'playwright-report',
       'test-results',

@@ -1,5 +1,5 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { useRoute, useRuntimeConfig } from '#imports'
+import { useRoute } from '#imports'
 import { useI18n } from 'vue-i18n'
 import { useZitadelApi } from '~/composables/useZitadelApi'
 import { isRecord } from '~/utils/guards'
@@ -25,13 +25,10 @@ const isMfaRequired = (error: unknown): boolean =>
 /**
  * State machine of the login page (pages/auth/login.vue): email -> OTP code -> (staff with an authenticator app) TOTP
  * code -> OIDC finalize. Each step calls tsb-service's Zitadel proxy (`useZitadelApi`); the final step hands over to
- * Zitadel by redirect (web) or exchanges the code directly (Capacitor, whose WebView cannot follow the callback URL).
+ * Zitadel by redirect.
  * Failures are mapped to a message of `login.*`; a request in flight blocks every other submit.
  */
 export function useLoginFlow() {
-  const config = useRuntimeConfig()
-  const isCapacitor = config.public.appBuild === 'capacitor'
-
   const { t } = useI18n()
   const route = useRoute()
   const { requestOtpLogin, verifyOtpLogin, verifyTotpLogin, resendOtpLogin, finalizeOidcAuth } =
@@ -64,8 +61,7 @@ export function useLoginFlow() {
 
   // Fetch authRequestId via authorize-proxy when navigated directly (no authRequestID in URL), so the user never
   // Leaves the dashboard domain. Also after a session expiry (?session=expired): that is the usual way in, and without
-  // An authRequestId the last step would fall back to signIn(), i.e. to Zitadel's own login UI (and, on Capacitor, out
-  // Of the WebView).
+  // An authRequestId the last step would fall back to signIn(), i.e. to Zitadel's own login UI.
   onMounted(async () => {
     if (!authRequestIdFromUrl) {
       initializing.value = true
@@ -175,41 +171,7 @@ export function useLoginFlow() {
 
     const result = await finalizeOidcAuth(effectiveAuthRequestId.value, sessionId, sessionToken)
 
-    if (isCapacitor) {
-      // Capacitor: exchange the auth code for tokens directly.
-      // We can't follow result.callbackUrl, the WebView runs at https://localhost
-      // And navigating there would lose the OIDC state.
-      const callbackUrl = new URL(result.callbackUrl)
-      const authCode = callbackUrl.searchParams.get('code')
-      if (authCode === null || authCode === '')
-        throw new Error('No authorization code in callback URL')
-
-      const { useOidc } = await import('~/composables/useOidc')
-      const { exchangeCodeForTokens } = useOidc()
-      await exchangeCodeForTokens(authCode)
-
-      const { useAuthCallback } = await import('~/composables/useAuthCallback')
-      const { processCallback } = useAuthCallback()
-      const outcome = await processCallback()
-      if (!outcome.ok) {
-        loading.value = false
-        errorMessage.value =
-          outcome.reason === 'not_admin' ? t('login.accessDenied') : t('login.callbackError')
-      }
-    } else {
-      window.location.href = result.callbackUrl
-    }
-  }
-
-  /** Refresh the authRequestId so retries after a failed finalize get a fresh one. */
-  const refreshCapacitorAuthRequest = async () => {
-    if (!isCapacitor) return
-    try {
-      const { useOidc } = await import('~/composables/useOidc')
-      fetchedAuthRequestId.value = await useOidc().getAuthRequestId()
-    } catch {
-      /* Best-effort */
-    }
+    window.location.href = result.callbackUrl
   }
 
   const verifyCode = async () => {
@@ -238,8 +200,6 @@ export function useLoginFlow() {
         step.value = 'totp'
         return
       }
-
-      await refreshCapacitorAuthRequest()
 
       errorMessage.value =
         httpStatus(error) === 429 ? t('login.tooManyRequests') : t('login.invalidCode')
@@ -271,8 +231,6 @@ export function useLoginFlow() {
       loading.value = false
       if (import.meta.dev) console.error('TOTP verify error:', error)
       totpCode.value = ''
-      await refreshCapacitorAuthRequest()
-
       errorMessage.value =
         httpStatus(error) === 429 ? t('login.tooManyRequests') : t('login.invalidTotp')
     } finally {

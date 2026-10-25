@@ -14,12 +14,9 @@ export const testEnv: Record<string, string> = {
   GRAPHQL_WS_URL: 'wss://api.dash.test/api/v1/graphql',
   ZITADEL_AUTHORITY: 'https://auth.dash.test',
   ZITADEL_CLIENT_ID: 'unit-test-client-id',
-  ZITADEL_NATIVE_CLIENT_ID: 'unit-test-native-client-id',
   RESTAURANT_NAME: 'Test Sushi',
 }
 Object.assign(process.env, testEnv)
-// A Capacitor build is the Android one: the tests run the web dashboard (they flip `appBuild` per test where needed).
-delete process.env.APP_BUILD
 delete process.env.DASHBOARD_ZITADEL_CLIENT_ID
 
 const path = (file: string) => fileURLToPath(new URL(file, import.meta.url))

@@ -13,14 +13,12 @@ Repository `nuagemagique-dev/pili-dashboard`, local folder and internal name `ts
 - Pinia with persisted state
 - GraphQL + subscriptions (`graphql-ws`)
 - `@nuxtjs/i18n` (fr default, en, zh)
-- Epson ePOS integration for receipt and kitchen printing
 
 ## Main features
 
 - Product CRUD with multilingual translations
 - Live order board with status updates
 - Auth-protected admin routes
-- Printer auto-discovery and print flows
 
 ## Local setup
 
@@ -38,7 +36,6 @@ Minimum variables:
 - `S3_BUCKET_URL`
 - `ZITADEL_AUTHORITY`
 - `ZITADEL_CLIENT_ID`
-- `PRINTER_ENABLED`
 
 ### 2) Install and run
 

@@ -28,8 +28,7 @@ const ME = gql`
 `
 
 /**
- * Shared post-login steps used by both pages/auth/login.vue (Capacitor direct
- * exchange) and pages/auth/callback.vue (web + Capacitor deep-link).
+ * Post-login steps of pages/auth/callback.vue.
  * Fetches the current user, enforces the admin gate, stores it, and navigates
  * to the dashboard home.
  */
