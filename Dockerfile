@@ -8,7 +8,7 @@ ARG S3_BUCKET_URL
 ARG GRAPHQL_WS_URL
 ARG ZITADEL_AUTHORITY
 ARG ZITADEL_CLIENT_ID
-# Restaurant name printed on receipts (white-label); defaults to Tokyo Sushi Bar.
+# Restaurant name shown in the app (white-label); defaults to Tokyo Sushi Bar.
 ARG RESTAURANT_NAME
 
 ENV DASHBOARD_BASE_URL=${DASHBOARD_BASE_URL} \

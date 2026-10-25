@@ -46,14 +46,6 @@ export function centsToEuros(cents: number): number {
   return cents / 100
 }
 
-/** Integer cents as the receipt price, same format as the POS: 2050 -> "20,50 €" (comma, non-breaking space). */
-export function formatCentsReceipt(cents: number): string {
-  const abs = Math.abs(cents)
-  const whole = Math.floor(abs / 100)
-  const fraction = String(abs % 100).padStart(2, '0')
-  return `${cents < 0 ? '-' : ''}${whole},${fraction} €`
-}
-
 /** The sum of amounts in integer cents, or null when any of them is not a readable amount (a partial sum would be wrong). */
 export function sumCents(values: (string | number | null | undefined)[]): number | null {
   let sum = 0
