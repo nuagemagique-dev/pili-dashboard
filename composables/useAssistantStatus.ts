@@ -1,7 +1,5 @@
 import { onMounted, watch } from 'vue'
 import { useGqlSubscription, useNuxtApp, useState } from '#imports'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import type { AssistantConnection } from '~/utils/assistant'
 
 export const CONNECTION_FIELDS = `
@@ -18,21 +16,21 @@ export const CONNECTION_FIELDS = `
   problemSince
 `
 
-const GET_CONNECTION = print(gql`
+const GET_CONNECTION = /* GraphQL */ `
   query AssistantConnection {
     assistantConnection {
       ${CONNECTION_FIELDS}
     }
   }
-`)
+`
 
-const SUB_CONNECTION = print(gql`
+const SUB_CONNECTION = /* GraphQL */ `
   subscription AssistantConnectionUpdated {
     assistantConnectionUpdated {
       ${CONNECTION_FIELDS}
     }
   }
-`)
+`
 
 /**
  * The Telegram assistant's connection, shared by the layout banner and the

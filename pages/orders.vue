@@ -835,8 +835,6 @@ import {
   formatTimeOnly,
   shiftBrusselsDate,
 } from '~/utils/utils'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { useI18n } from 'vue-i18n'
 
 const { t, locale } = useI18n()
@@ -1062,7 +1060,7 @@ const firstStaleOrder = computed(() => staleOrders.value[0] ?? null)
 const paymentChip = (order: Order, detail = false) => buildPaymentChip(order, t, detail)
 
 // GraphQL Queries and Mutations
-const ORDERS_QUERY = gql`
+const ORDERS_QUERY = /* GraphQL */ `
   query {
     orders {
       id
@@ -1163,7 +1161,7 @@ watch(
 const { data: orderUpdated } = useGqlSubscription<{
   orderUpdated: Partial<Order>
 }>(
-  print(gql`
+  /* GraphQL */ `
     subscription {
       orderUpdated {
         id
@@ -1175,7 +1173,7 @@ const { data: orderUpdated } = useGqlSubscription<{
         }
       }
     }
-  `),
+  `,
   {},
 )
 
@@ -1189,7 +1187,7 @@ watch(orderUpdated, (val) => {
 const { data: orderCreated } = useGqlSubscription<{
   orderCreated: Order
 }>(
-  print(gql`
+  /* GraphQL */ `
     subscription {
       orderCreated {
         id
@@ -1256,7 +1254,7 @@ const { data: orderCreated } = useGqlSubscription<{
         }
       }
     }
-  `),
+  `,
   {},
 )
 

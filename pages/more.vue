@@ -53,8 +53,6 @@
 
 <script setup lang="ts">
 import type { AppLocale } from '~/composables/useLocaleSwitch'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { stateKey } from '~/utils/assistant'
 
 const { t, locale } = useI18n()
@@ -77,7 +75,7 @@ watch(
   { immediate: true },
 )
 
-const MORE_COUNTS = print(gql`
+const MORE_COUNTS = /* GraphQL */ `
   query MoreCounts {
     customerStats {
       summary {
@@ -88,7 +86,7 @@ const MORE_COUNTS = print(gql`
       status
     }
   }
-`)
+`
 
 const customerCount = ref<number | null>(null)
 const activeCoupons = ref<number | null>(null)

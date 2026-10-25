@@ -1,8 +1,6 @@
 import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGqlMutation, useToast } from '#imports'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import type { Order, OrderStatus } from '~/types'
 import { formatTimeOnly, timeToRFC3339 } from '~/utils/utils'
 import { getAllowedStatuses, updateOrderErrorKey } from '~/utils/orders'
@@ -16,7 +14,7 @@ interface UseOrderActionsOptions {
   onDone?: (kind: OrderActionKind) => void
 }
 
-const UPDATE_ORDER_MUTATION = gql`
+const UPDATE_ORDER_MUTATION = /* GraphQL */ `
   mutation ($id: ID!, $input: UpdateOrderInput!) {
     updateOrder(id: $id, input: $input) {
       id
@@ -27,7 +25,7 @@ const UPDATE_ORDER_MUTATION = gql`
   }
 `
 
-const UPDATE_PAYMENT_STATUS_MUTATION = gql`
+const UPDATE_PAYMENT_STATUS_MUTATION = /* GraphQL */ `
   mutation ($orderId: ID!, $status: String!) {
     updatePaymentStatus(orderId: $orderId, status: $status) {
       id
@@ -37,7 +35,7 @@ const UPDATE_PAYMENT_STATUS_MUTATION = gql`
 `
 
 // Same fields as the orders list query in pages/orders.vue
-export const ORDER_BY_ID_QUERY = print(gql`
+export const ORDER_BY_ID_QUERY = /* GraphQL */ `
   query ($id: ID!) {
     order(id: $id) {
       id
@@ -104,7 +102,7 @@ export const ORDER_BY_ID_QUERY = print(gql`
       }
     }
   }
-`)
+`
 
 /**
  * Order actions shared by the desktop slideover and the mobile detail page:

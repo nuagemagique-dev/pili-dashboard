@@ -451,8 +451,6 @@ import {
   sortCustomers,
 } from '~/utils/customers'
 import { computed, ref, watch } from 'vue'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { useGqlQuery } from '#imports'
 import { useI18n } from 'vue-i18n'
 
@@ -577,7 +575,7 @@ const queryVariables = computed(() => {
   return Object.keys(input).length > 0 ? { input } : {}
 })
 
-const CUSTOMER_STATS_QUERY = gql`
+const CUSTOMER_STATS_QUERY = /* GraphQL */ `
   query CustomerStats($input: CustomerStatsInput) {
     customerStats(input: $input) {
       summary {
@@ -607,7 +605,7 @@ const CUSTOMER_STATS_QUERY = gql`
 `
 
 const { data, pending, refetch } = await useGqlQuery<{ customerStats: CustomerStatsResponse }>(
-  print(CUSTOMER_STATS_QUERY),
+  CUSTOMER_STATS_QUERY,
   () => queryVariables.value,
   { immediate: true, cache: false, server: false },
 )
@@ -738,7 +736,7 @@ const loadingMoreOrders = ref(false)
 const ordersPage = ref(1)
 const ordersPageSize = 20
 
-const CUSTOMER_ORDERS_QUERY = print(gql`
+const CUSTOMER_ORDERS_QUERY = /* GraphQL */ `
   query CustomerOrders($userId: ID!, $first: Int, $page: Int) {
     customerOrders(userId: $userId, first: $first, page: $page) {
       id
@@ -754,7 +752,7 @@ const CUSTOMER_ORDERS_QUERY = print(gql`
       }
     }
   }
-`)
+`
 
 const { $gqlFetch } = useNuxtApp()
 

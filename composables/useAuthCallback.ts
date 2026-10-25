@@ -1,12 +1,10 @@
 import { navigateTo, useLocalePath, useNuxtApp } from '#imports'
 import type { User } from '@/types'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { useAuthStore } from '@/stores/auth'
 import { useOidc } from '~/composables/useOidc'
 import { consumeReturnTo } from '~/utils/authReturn'
 
-const ME = gql`
+const ME = /* GraphQL */ `
   query {
     me {
       id
@@ -47,7 +45,7 @@ export function useAuthCallback() {
      * retried and must still know where to go. Once it has answered, it is read whatever the outcome (an account that
      * is not an admin included), so that a stale path never sends a later login somewhere unexpected.
      */
-    const data = await $gqlFetch<{ me?: User | null } | null>(print(ME))
+    const data = await $gqlFetch<{ me?: User | null } | null>(ME)
     const me = data?.me
     if (me === null || me === undefined) {
       return { ok: false }
