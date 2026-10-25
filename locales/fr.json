@@ -4,7 +4,6 @@
     "cancel": "Annuler",
     "save": "Enregistrer",
     "create": "Créer",
-    "print": "Imprimer",
     "itemsPerPage": "Éléments par page",
     "name": "Nom",
     "description": "Description",
@@ -98,17 +97,8 @@
     "updateTime": "Mettre à jour l'heure",
     "asap": "Dès que possible",
     "orderManagement": "Gestion de commande",
-    "print": {
-      "label": "Imprimer",
-      "both": "Imprimer les deux",
-      "delivery": "Imprimer ticket livraison",
-      "kitchen": "Imprimer ticket cuisine"
-    },
     "confirmCancelTitle": "Confirmer l'annulation",
     "confirmCancelMessage": "Êtes-vous sûr de vouloir annuler cette commande ?",
-    "printContinueTitle": "Détachez le ticket cuisine",
-    "printContinueMessage": "Le ticket cuisine vient d'être imprimé. Détachez-le avant de continuer avec le ticket client.",
-    "printContinueCta": "Imprimer le ticket client",
     "refundNotice": "Un remboursement sera effectué pour les paiements en ligne",
     "back": "Retour",
     "confirm": "Confirmer",
@@ -181,7 +171,6 @@
     "errors": {
       "updateFailed": "Échec de la mise à jour de la commande",
       "invalidTransition": "Cette transition de statut n'est pas autorisée pour cette commande",
-      "printFailed": "Échec de l'impression",
       "paymentUpdateFailed": "Échec de la mise à jour du paiement",
       "orderingUpdateFailed": "Impossible de modifier l'état des commandes en ligne",
       "paymentSettlementFailed": "Le paiement n'a pas pu être remboursé ou annulé chez Mollie. La commande n'a pas été modifiée, réessayez.",

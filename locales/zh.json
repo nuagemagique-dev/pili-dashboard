@@ -4,7 +4,6 @@
     "cancel": "取消",
     "save": "保存",
     "create": "创建",
-    "print": "打印",
     "itemsPerPage": "每页项目数",
     "name": "名称",
     "description": "描述",
@@ -98,17 +97,8 @@
     "updateTime": "更新时间",
     "asap": "尽快",
     "orderManagement": "订单管理",
-    "print": {
-      "label": "打印",
-      "both": "打印两者",
-      "delivery": "打印配送小票",
-      "kitchen": "打印厨房小票"
-    },
     "confirmCancelTitle": "确认取消",
     "confirmCancelMessage": "确定要取消此订单吗？",
-    "printContinueTitle": "请撕下厨房小票",
-    "printContinueMessage": "厨房小票已打印。请先撕下厨房小票，然后继续打印客户小票。",
-    "printContinueCta": "打印客户小票",
     "refundNotice": "在线支付订单将自动退款",
     "back": "返回",
     "confirm": "确认",
@@ -181,7 +171,6 @@
     "errors": {
       "updateFailed": "更新订单失败",
       "invalidTransition": "此订单不允许该状态转换",
-      "printFailed": "打印失败",
       "paymentUpdateFailed": "更新支付状态失败",
       "orderingUpdateFailed": "无法更改在线订单状态",
       "paymentSettlementFailed": "无法在 Mollie 退款或取消该支付，订单未作更改，请重试。",
