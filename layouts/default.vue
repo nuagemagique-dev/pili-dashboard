@@ -94,6 +94,7 @@
           }"
         >
           <AssistantBanner />
+          <HubriseBanner />
           <slot />
         </div>
       </template>
@@ -105,10 +106,12 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem } from '#ui/types'
+import { hubriseNavVisible } from '~/utils/hubrise'
 
 const { locale, t } = useI18n()
 const route = useRoute()
 const ordersStore = useOrdersStore()
+const { status: hubriseStatus } = useHubriseStatus()
 
 const isMobile = useIsMobile()
 const { visible: tabBarVisible } = useTabBar()
@@ -165,6 +168,9 @@ const navigationItems = computed<NavigationMenuItem[][]>(() => {
       item(t('navigation.coupons'), 'i-lucide-ticket', 'coupons'),
       item(t('navigation.settings'), 'i-lucide-settings', 'settings'),
       item(t('navigation.assistant'), 'i-lucide-message-circle', 'assistant'),
+      ...(hubriseNavVisible(hubriseStatus.value)
+        ? [item(t('navigation.hubrise'), 'i-lucide-plug-zap', 'hubrise')]
+        : []),
     ],
   ]
 })

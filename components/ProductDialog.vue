@@ -15,6 +15,48 @@
   >
     <template #body>
       <div class="space-y-4 sm:space-y-6 min-w-0 max-md:overflow-x-hidden max-md:[&_label]:text-sm">
+        <!-- HubRise: who owns this product's data, or where the dashboard's edits stand -->
+        <div
+          v-if="managed"
+          class="rounded-[14px] border border-default bg-elevated p-3 flex items-start gap-3"
+          data-testid="product-hubrise-managed"
+        >
+          <UIcon name="i-lucide-lock" class="size-5 shrink-0 mt-0.5" />
+          <div class="flex flex-col gap-1 min-w-0">
+            <PiliChip tone="info" size="sm" class="self-start">{{
+              t('products.hubrise.managed')
+            }}</PiliChip>
+            <span class="text-sm leading-snug">{{ t('products.hubrise.managedHint') }}</span>
+          </div>
+        </div>
+        <div
+          v-else-if="publishInfo"
+          class="rounded-[14px] border border-default bg-elevated p-3 flex items-start gap-3"
+          data-testid="product-hubrise-publish"
+        >
+          <UIcon name="i-lucide-cloud-upload" class="size-5 shrink-0 mt-0.5" />
+          <div class="flex flex-col gap-1 min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <PiliChip v-if="publishBadge" :tone="publishBadge.tone" size="sm">{{
+                t(publishBadge.key)
+              }}</PiliChip>
+              <span v-if="publishInfo.ref" class="font-mono text-xs text-muted">{{
+                t('products.hubrise.ref', { ref: publishInfo.ref })
+              }}</span>
+            </div>
+            <span class="text-sm text-muted leading-snug">{{
+              publishInfo.publishedAt
+                ? t('products.hubrise.publishedAt', {
+                    time: formatInstant(publishInfo.publishedAt, locale),
+                  })
+                : t('products.hubrise.neverPublished')
+            }}</span>
+            <NuxtLink :to="localePath('/hubrise')" class="text-sm underline self-start">{{
+              t('products.hubrise.publishNow')
+            }}</NuxtLink>
+          </div>
+        </div>
+
         <!-- Row 1: Two Columns -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <!-- Left Column: Category, Code, Price, Piece Count -->
@@ -22,6 +64,7 @@
             <UFormField :label="t('products.category')" name="category" required>
               <USelectMenu
                 :ui="selectMenuUi"
+                :disabled="locked('category')"
                 v-model="editedProduct.categoryId"
                 :items="localizedCategories"
                 value-key="id"
@@ -33,6 +76,7 @@
             <UFormField :label="t('products.code')" name="code">
               <UInput
                 :ui="monoInputUi"
+                :disabled="locked('code')"
                 v-model="editedProduct.code"
                 :placeholder="t('products.code')"
               />
@@ -41,6 +85,7 @@
             <UFormField :label="t('products.priceEuro')" name="price" required>
               <UInput
                 :ui="monoInputUi"
+                :disabled="locked('price')"
                 v-model="editedProduct.price"
                 type="number"
                 :placeholder="t('products.priceEuro')"
@@ -59,6 +104,7 @@
             <UFormField :label="t('products.vatCategory.label')" name="vatCategory" required>
               <USelect
                 :ui="inputUi"
+                :disabled="locked('vatCategory')"
                 v-model="editedProduct.vatCategory"
                 :items="vatCategoryOptions"
                 value-key="value"
@@ -252,7 +298,13 @@
         <div class="space-y-3">
           <div class="flex items-center justify-between">
             <h3 class="text-sm font-medium">{{ t('products.choices.title') }}</h3>
-            <UButton icon="i-lucide-plus" size="xs" variant="outline" @click="addNewChoiceGroup">
+            <UButton
+              icon="i-lucide-plus"
+              size="xs"
+              variant="outline"
+              :disabled="locked('choiceGroups')"
+              @click="addNewChoiceGroup"
+            >
               {{ t('products.choices.groupAdd') }}
             </UButton>
           </div>
@@ -280,6 +332,7 @@
                   size="xs"
                   color="error"
                   variant="outline"
+                  :disabled="locked('choiceGroups')"
                   @click="removeChoiceGroup(gIdx)"
                 />
               </div>
@@ -291,6 +344,7 @@
                 >
                   <UInput
                     :ui="monoInputUi"
+                    :disabled="locked('choiceGroups')"
                     v-model.number="group.minSelections"
                     type="number"
                     min="0"
@@ -303,6 +357,7 @@
                 >
                   <UInput
                     :ui="monoInputUi"
+                    :disabled="locked('choiceGroups')"
                     v-model.number="group.maxSelections"
                     type="number"
                     min="1"
@@ -312,6 +367,7 @@
                 <UFormField :label="t('products.choices.sortOrder')" :name="`group-${gIdx}-sort`">
                   <UInput
                     :ui="monoInputUi"
+                    :disabled="locked('choiceGroups')"
                     v-model.number="group.sortOrder"
                     type="number"
                     placeholder="0"
@@ -343,6 +399,7 @@
                     icon="i-lucide-plus"
                     size="xs"
                     variant="outline"
+                    :disabled="locked('choiceGroups')"
                     @click="addNewChoice(gIdx)"
                   >
                     {{ t('products.choices.add') }}
@@ -367,6 +424,7 @@
                       size="xs"
                       color="error"
                       variant="outline"
+                      :disabled="locked('choiceGroups')"
                       @click="removeChoice(gIdx, cIdx)"
                     />
                   </div>
@@ -378,6 +436,7 @@
                     >
                       <UInput
                         :ui="monoInputUi"
+                        :disabled="locked('choiceGroups')"
                         v-model="choice.priceModifier"
                         type="number"
                         step="0.01"
@@ -390,6 +449,7 @@
                     >
                       <UInput
                         :ui="monoInputUi"
+                        :disabled="locked('choiceGroups')"
                         v-model.number="choice.sortOrder"
                         type="number"
                         placeholder="0"
@@ -464,6 +524,13 @@ import type {
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCategoriesStore } from '~/stores/categories'
 import { splitEmptyChoiceGroups } from '~/utils/choiceGroups'
+import {
+  formatInstant,
+  hubriseError,
+  isFieldLocked,
+  isHubriseManaged,
+  publishChip,
+} from '~/utils/hubrise'
 import { useI18n } from 'vue-i18n'
 
 // Props and emits definition.
@@ -486,6 +553,14 @@ const emit = defineEmits<{
 const { t, locale } = useI18n()
 const isMobile = useIsMobile()
 const toast = useToast()
+const localePath = useLocalePath()
+
+// HubRise: in IMPORT mode HubRise owns some fields (the server says which); in PUBLISH mode the product shows where
+// its publication stands. Both are undefined where the server has no HubRise.
+const managed = computed(() => isHubriseManaged(product))
+const locked = (field: string): boolean => isFieldLocked(product, field)
+const publishInfo = computed(() => product?.hubrisePublish ?? null)
+const publishBadge = computed(() => publishChip(product?.hubrisePublish))
 
 // Languages used for translations.
 const languages = ['fr', 'en', 'zh', 'nl']
@@ -918,6 +993,12 @@ const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/webp']
 const MAX_IMAGE_SIZE = 50 * 1024 * 1024 // 50 MB
 const CODE_REGEX = /^[A-Z]+\d+$/u
 
+// HubRise owns the option groups of a managed product: say so instead of the generic failure.
+const choiceSaveFailedMessage = (failure: unknown): string =>
+  hubriseError(failure).code === 'HUBRISE_MANAGED'
+    ? t('hubrise.errors.managed')
+    : t('validation.choiceSaveFailed')
+
 const saveChanges = async () => {
   validationErrors.value = []
 
@@ -1054,8 +1135,8 @@ const saveChanges = async () => {
       if (editedChoiceGroups.value.length > 0) {
         try {
           await saveChoices(created.id)
-        } catch {
-          validationErrors.value.push(t('validation.choiceSaveFailed'))
+        } catch (err) {
+          validationErrors.value.push(choiceSaveFailedMessage(err))
           return
         }
       }
@@ -1069,8 +1150,8 @@ const saveChanges = async () => {
     // Save choices first
     try {
       await saveChoices(product.id)
-    } catch {
-      validationErrors.value.push(t('validation.choiceSaveFailed'))
+    } catch (err) {
+      validationErrors.value.push(choiceSaveFailedMessage(err))
       return
     }
 

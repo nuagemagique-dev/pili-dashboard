@@ -1,3 +1,4 @@
+import type { HubriseOrderInfo, HubriseProductFields } from '~/utils/hubrise'
 // Types/index.ts
 export interface Translation {
   language: string
@@ -51,7 +52,7 @@ export interface UpdateProductChoiceInput {
 
 export type VatCategory = 'food' | 'beverage' | 'zero_rated' | 'out_of_scope'
 
-export interface Product {
+export interface Product extends HubriseProductFields {
   categoryId: string
   code: string | null
   id: string
@@ -222,6 +223,8 @@ export type OrderPickUpStatus =
   | 'FAILED'
 export type OrderType = 'DELIVERY' | 'PICKUP'
 export interface Order {
+  /** The HubRise side of the order; null when it never reached HubRise, absent where the server has none. */
+  hubrise?: HubriseOrderInfo | null
   addressExtra: string | null
   addressId: string | null
   createdAt: string

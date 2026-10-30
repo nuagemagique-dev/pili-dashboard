@@ -16,7 +16,7 @@ pnpm test:coverage                             # coverage + thresholds (what CI 
 `coverage/lcov-report/index.html` is the browsable report. The thresholds in `vite.config.ts`
 (`test.coverage.thresholds`) only ever go up: a global floor of 99 % (so that one new defensive line somewhere does not
 fail CI), and one per file for the critical flows (`criticalFiles`: auth, the GraphQL client, the orders store and the
-order logic, money): held at what they reach: 100 % lines, statements, functions and branches,
+order logic, money, the HubRise logic `utils/hubrise.ts` and its four composables: status, settings, catalog import, publish): held at what they reach: 100 % lines, statements, functions and branches,
 except one file: `utils/utils.ts` has 96 % of its branches, because of the `?? 1970` / `?? 0`
 fallbacks of `shiftBrusselsDate` / `timeToRFC3339` after `split`, which only run for a malformed date string.
 

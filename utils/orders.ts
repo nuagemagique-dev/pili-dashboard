@@ -389,7 +389,7 @@ const UPDATE_ORDER_ERROR_KEYS: Record<string, string> = {
 }
 
 /** The GraphQL errors of a failed request (`$gqlFetch` throws the raw `errors` array, or an object carrying it). */
-const gqlErrorEntries = (error: unknown): unknown[] => {
+export const gqlErrorEntries = (error: unknown): unknown[] => {
   if (Array.isArray(error)) return error
   const errors = isRecord(error) ? error.errors : undefined
   return Array.isArray(errors) ? errors : [error]

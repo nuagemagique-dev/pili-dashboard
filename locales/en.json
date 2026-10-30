@@ -74,7 +74,18 @@
     },
     "itemsCount": "items",
     "addShort": "Add",
-    "piecesShort": "pcs"
+    "piecesShort": "pcs",
+    "hubrise": {
+      "managed": "Managed by HubRise",
+      "managedHint": "Some fields come from HubRise and are locked.",
+      "published": "Published",
+      "pending": "To publish",
+      "notPublished": "Not published",
+      "ref": "HubRise ref: {ref}",
+      "publishedAt": "Published {time}",
+      "neverPublished": "Not published yet",
+      "publishNow": "Open publication"
+    }
   },
   "orders": {
     "subtitle": "Manage your orders in real-time",
@@ -212,7 +223,57 @@
     "articles": "{count} item | {count} items",
     "cancelOrder": "Cancel order",
     "markPaid": "Mark paid",
-    "estimateSaved": "Estimate saved"
+    "estimateSaved": "Estimate saved",
+    "hubrise": {
+      "title": "HubRise",
+      "orderId": "HubRise order",
+      "pushedAt": "Sent on",
+      "remoteStatus": "HubRise status",
+      "remoteTotal": "HubRise total",
+      "needsAttention": "Needs attention",
+      "cancelAndRefund": "Cancel and refund",
+      "push": {
+        "pending": "HubRise: pending",
+        "sent": "HubRise: sent",
+        "parked": "HubRise: parked",
+        "skipped": "HubRise: skipped",
+        "unknown": "HubRise"
+      },
+      "attention": {
+        "unlinkedItem": {
+          "title": "Unlinked item",
+          "body": "An item of the order is not linked to a HubRise product. Link it and retry the send."
+        },
+        "totalMismatch": {
+          "title": "Total mismatch",
+          "body": "HubRise computed a different total than ours. Check the order before going on."
+        },
+        "notAccepted": {
+          "title": "Order not accepted",
+          "body": "HubRise did not accept the order. See the outbox for details."
+        },
+        "statusConflict": {
+          "title": "Status conflict",
+          "body": "The status in HubRise differs from ours. Check which one is right."
+        },
+        "deliveryFailed": {
+          "title": "Delivery failed",
+          "body": "The order could not be sent to HubRise. Retry the send from the outbox."
+        },
+        "remoteCancelFailed": {
+          "title": "HubRise cancellation failed",
+          "body": "The cancellation could not be passed to HubRise. Cancel it in HubRise too."
+        },
+        "remoteCancelledPaid": {
+          "title": "Cancelled in HubRise, already paid",
+          "body": "The order was cancelled in HubRise but it is paid. Cancel it here to refund the customer."
+        },
+        "unknown": {
+          "title": "Action required",
+          "body": "This order needs a check in HubRise."
+        }
+      }
+    }
   },
   "orderHistory": {
     "title": "Order History",
@@ -344,7 +405,8 @@
     "settings": "Settings",
     "logout": "Logout",
     "more": "More",
-    "assistant": "Assistant"
+    "assistant": "Assistant",
+    "hubrise": "HubRise"
   },
   "settings": {
     "security": {
@@ -544,6 +606,322 @@
       "unavailable": "The assistant service is not answering right now. Try again later.",
       "limitReached": "All places are taken, remove an account first.",
       "notFound": "This account or link no longer exists, refresh the page."
+    }
+  },
+  "hubrise": {
+    "title": "HubRise",
+    "description": "The dashboard is the single source of the menu. HubRise receives it and passes it on to the till.",
+    "loading": "Loading HubRise...",
+    "loadFailed": "Could not read the HubRise status.",
+    "notAvailable": "HubRise is not configured on this server.",
+    "attention": "{count} order needs attention | {count} orders need attention",
+    "status": {
+      "notConnected": "Not connected",
+      "enabled": "Active",
+      "paused": "Paused"
+    },
+    "actions": {
+      "reconnect": "Reconnect",
+      "forgetLinks": "Forget links",
+      "reviewImport": "Review import",
+      "acknowledge": "Acknowledge",
+      "preview": "View publication",
+      "import": "Import"
+    },
+    "banners": {
+      "authError": "HubRise has refused access since {since}. Reconnect the account.",
+      "relinkRequired": "The product links belong to another catalog. Forget them to start afresh.",
+      "reconnectForWrite": "The connection cannot write the catalog. Reconnect HubRise to grant that permission.",
+      "accountCatalog": "This catalog is shared at the HubRise account level: it cannot be published from here.",
+      "pendingReview": "An import is waiting for your review.",
+      "externalChange": "The catalog was edited in HubRise on {at}. The next publication will overwrite those changes.",
+      "removalsConfirm": "This publication removes items in HubRise. A typed confirmation is required.",
+      "updateAvailable": "The HubRise catalog has changed. You can import it."
+    },
+    "errors": {
+      "generic": "A HubRise error occurred.",
+      "notConfigured": "HubRise is not configured on this server.",
+      "notConnected": "No HubRise account is connected.",
+      "notEnabled": "The HubRise integration is paused. Enable it first.",
+      "relinkRequired": "The links belong to another catalog. Forget them first.",
+      "previewRequired": "Show the preview before applying.",
+      "retireConfirmRequired": "Confirm the retirement of products before importing.",
+      "emptyCatalog": "The HubRise catalog is empty.",
+      "busy": "A sync is already running. Try again in a moment.",
+      "skuLinked": "This product is already linked to another HubRise item.",
+      "managed": "This field is managed by HubRise and cannot be edited here.",
+      "upstream": "HubRise answered with an error ({status}).",
+      "publishMode": "Publish mode is on: import is not available.",
+      "directionConflict": "The catalog direction changed in the meantime. Reload the page.",
+      "reconnectRequired": "Reconnect HubRise to grant catalog write access.",
+      "accountCatalog": "This catalog is shared at account level: it cannot be published.",
+      "notPublishMode": "Publish mode is not on.",
+      "previewStale": "The menu changed since the preview. The preview was reloaded, check it.",
+      "publishConfirmRequired": "This publication removes items: confirm it explicitly.",
+      "publishBlocked": "The publication is blocked: fix the reported issues first.",
+      "publishPendingChanges": "Menu changes are still being processed. Try again in a moment.",
+      "rateLimited": "HubRise is rate limiting requests. Try again in {seconds} s.",
+      "emptyMenu": "The menu is empty: nothing to publish."
+    },
+    "publish": {
+      "errors": {
+        "writeScopeMissing": "The HubRise connection cannot write the catalog. Reconnect it.",
+        "removalsNeedConfirm": "The publication would remove many items in HubRise and is on hold. Preview it and confirm.",
+        "accountCatalog": "The catalog is shared at the HubRise account level: publishing is not possible.",
+        "catalogNotFound": "The HubRise catalog was not found. Check the connection. {detail}",
+        "rejected": "HubRise rejected the last publication. {detail}",
+        "invalidMenu": "The menu has errors that prevent publishing. {detail}",
+        "unavailable": "HubRise is unavailable, retrying automatically. {detail}",
+        "auth": "HubRise refused access. Reconnect the account."
+      },
+      "intro": "Every menu edit is published to the HubRise catalog. The till reads that catalog.",
+      "statusTitle": "Publication",
+      "phase": {
+        "awaitingFirst": "First publication to do",
+        "paused": "Paused",
+        "publishing": "Publishing",
+        "pending": "Changes pending",
+        "upToDate": "Up to date"
+      },
+      "nextIn": "Next publication in {time}",
+      "nextUnknown": "Next publication soon",
+      "awaitingFirst": "Show the preview and confirm to publish the menu for the first time.",
+      "lastPublished": "Last published",
+      "never": "Never",
+      "products": "Products",
+      "productsCount": "{published} published, {pending} pending",
+      "previewButton": "Preview and publish",
+      "queued": "Publication queued",
+      "published": "Menu published"
+    },
+    "direction": {
+      "title": "Catalog direction",
+      "intro": "Choose which side owns the menu. The dashboard publishes to HubRise, or HubRise is imported.",
+      "current": "Current",
+      "dialogTitle": "Change the catalog direction",
+      "confirmButton": "Confirm the change",
+      "changed": "Catalog direction changed",
+      "acknowledgeOverwrite": "I understand the HubRise catalog will be overwritten.",
+      "options": {
+        "NONE": {
+          "title": "None",
+          "description": "The menu is neither imported nor published."
+        },
+        "IMPORT": {
+          "title": "Import from HubRise",
+          "description": "HubRise owns the menu and the dashboard receives it."
+        },
+        "PUBLISH": {
+          "title": "Publish to HubRise",
+          "description": "The dashboard owns the menu and HubRise receives it (recommended)."
+        }
+      },
+      "blocked": {
+        "reconnectRequired": "Reconnect HubRise to be able to publish.",
+        "notConnected": "Connect a HubRise account first."
+      },
+      "confirm": {
+        "noneToImport": "The menu will be imported from HubRise. A preview is shown before anything changes.",
+        "noneToPublish": "The dashboard becomes the source of the menu and publishes it to HubRise.",
+        "importToNone": "Importing from HubRise stops. Existing products are kept.",
+        "importToPublish": "The dashboard becomes the source of the menu: edits made in HubRise will be overwritten.",
+        "publishToNone": "Publishing to HubRise stops. The HubRise catalog stays as it is.",
+        "publishToImport": "HubRise becomes the source of the menu again. A preview is shown before anything changes."
+      }
+    },
+    "import": {
+      "intro": {
+        "NONE": "No catalog sync is active.",
+        "IMPORT": "Import the HubRise catalog into the menu. A preview comes before any change.",
+        "PUBLISH": "In publish mode, import only links existing products."
+      },
+      "modes": {
+        "LINK_ONLY": "Link only",
+        "FULL": "Full import"
+      },
+      "modeHint": {
+        "LINK_ONLY": "Links existing products to HubRise and changes nothing else.",
+        "FULL": "Creates, updates and retires products following HubRise."
+      },
+      "preview": "Preview the import",
+      "apply": {
+        "LINK_ONLY": "Apply links",
+        "FULL": "Apply the import"
+      },
+      "enableFirst": "Enable the HubRise integration first.",
+      "loading": "Computing the preview...",
+      "linked": "{count} products linked",
+      "unchanged": "{count} unchanged",
+      "retiring": "{count} to retire",
+      "noChanges": "No changes",
+      "conflicts": "Conflicts",
+      "warnings": "Warnings",
+      "actions": {
+        "RETIRE": "Retired ({count})",
+        "UPDATE": "Updated ({count})",
+        "CREATE": "Created ({count})",
+        "LINK": "Linked ({count})",
+        "REVIVE": "Revived ({count})"
+      },
+      "confirmRetire": "I confirm retiring {count} products",
+      "applied": "Import applied",
+      "waitingReview": "Import waiting for review",
+      "notApplied": "The import was not applied",
+      "failedBatches": "Failed batches: {batches}"
+    },
+    "preview": {
+      "title": "Publication preview",
+      "description": "This is what will change in the HubRise catalog.",
+      "loading": "Computing the preview...",
+      "retryIn": "Try again in {time}",
+      "retry": "Retry",
+      "firstPublish": "First publication: the whole menu will be sent to HubRise.",
+      "counts": {
+        "added": "Added",
+        "updated": "Updated",
+        "removed": "Removed",
+        "unchanged": "Unchanged",
+        "foreign": "Foreign"
+      },
+      "rowCounts": "+{added} ~{updated} -{removed}",
+      "nothingToDo": "Nothing to publish: HubRise is already up to date.",
+      "actions": {
+        "REMOVE": "Removed ({count})",
+        "UPDATE": "Updated ({count})",
+        "ADD": "Added ({count})"
+      },
+      "truncated": "The list is truncated: only the first changes are shown.",
+      "foreignTitle": "{count} items not in the menu",
+      "foreignHint": "These items exist in HubRise but not in the menu. By default they are kept.",
+      "removeForeign": "Remove these {count} items from HubRise",
+      "preserved": "Kept in HubRise",
+      "warnings": "Warnings",
+      "blockers": "Blockers",
+      "typedPrompt": "To confirm removing {count} items, type that number.",
+      "typedLabel": "Confirmation",
+      "confirm": "Publish",
+      "confirmFirst": "Publish the menu"
+    },
+    "entities": {
+      "CATEGORY": "Category",
+      "PRODUCT": "Product",
+      "CHOICE_GROUP": "Choice group",
+      "CHOICE": "Choice"
+    },
+    "connection": {
+      "title": "Connection",
+      "account": "Account",
+      "location": "Location",
+      "catalog": "Catalog",
+      "customerList": "Customer list",
+      "lastEvent": "Last event",
+      "lastCatalogSync": "Last catalog sync",
+      "disconnect": "Disconnect",
+      "disconnectHint": "Stops exchanges with HubRise. Product links are kept.",
+      "forgetLinks": "Forget product links",
+      "disconnectConfirm": "Yes, disconnect",
+      "disconnected": "HubRise disconnected",
+      "linksForgotten": "{count} links forgotten",
+      "notConnected": "No HubRise account is connected.",
+      "connect": "Connect HubRise"
+    },
+    "features": {
+      "title": "Features",
+      "description": "Turn the exchanges on step by step.",
+      "enabled": "Integration enabled",
+      "enabledHint": "Turn off to pause every exchange.",
+      "enabledRelink": "Forget the product links first to enable the integration.",
+      "pausedHint": "The integration is paused: nothing is exchanged.",
+      "syncInventoryNow": "Sync inventory now",
+      "inventorySynced": "Inventory synced ({count})",
+      "unlinked": "{count} unlinked products"
+    },
+    "toggles": {
+      "pushOrders": "Send orders",
+      "syncStatus": "Sync statuses",
+      "syncCustomers": "Sync customers",
+      "syncInventory": "Sync inventory",
+      "autoRefundOnCancel": "Refund automatically on cancel",
+      "catalogAutoImport": "Import the catalog automatically",
+      "importImages": "Import images",
+      "publishImages": "Publish images"
+    },
+    "hints": {
+      "pushOrders": "New orders are sent to HubRise.",
+      "pushOrdersUnlinked": "{count} products are not linked: orders containing them wait for review.",
+      "syncStatus": "Order statuses stay aligned with HubRise.",
+      "syncCustomers": "Customers are sent to the HubRise customer list.",
+      "syncInventory": "Stock-outs are shared with HubRise.",
+      "autoRefundOnCancel": "An order cancelled in HubRise is refunded with no manual action.",
+      "catalogAutoImport": "Changes in the HubRise catalog are imported without review.",
+      "importImages": "Images of the HubRise catalog are taken over.",
+      "publishImages": "Product images are published with the menu."
+    },
+    "catalog": {
+      "title": "Catalog"
+    },
+    "platformPrices": {
+      "title": "Prices per platform",
+      "description": "Each platform reads its own variant in HubRise: the menu prices plus a markup, options included. Choose this variant in the platform's bridge.",
+      "name": "Platform",
+      "variantRef": "Variant reference",
+      "markupPercent": "Markup (%)",
+      "roundToCents": "Round up to a multiple of (cents)",
+      "add": "Add a platform",
+      "remove": "Remove"
+    },
+    "options": {
+      "title": "Options",
+      "description": "Advanced settings of the match with HubRise.",
+      "catalogLanguage": "Catalog language",
+      "variantRef": "Variant reference",
+      "channelName": "Channel name",
+      "deliveryChargeRef": "Delivery charge reference",
+      "paymentFeeChargeRef": "Payment fee reference",
+      "optional": "Optional",
+      "languages": {
+        "fr": "French",
+        "en": "English",
+        "nl": "Dutch",
+        "zh": "Chinese"
+      }
+    },
+    "outbox": {
+      "title": "Outbox",
+      "summary": "{pending} pending, {parked} parked",
+      "states": {
+        "PARKED": "Parked",
+        "PENDING": "Pending",
+        "SENDING": "Sending",
+        "SENT": "Sent",
+        "SKIPPED": "Skipped"
+      },
+      "kinds": {
+        "ORDER_CREATE": "New order",
+        "ORDER_STATUS": "Order status",
+        "INVENTORY": "Inventory",
+        "CUSTOMER": "Customer",
+        "CUSTOMER_ANONYMISE": "Customer anonymisation"
+      },
+      "retryAll": "Retry all",
+      "retry": "Retry",
+      "retried": "{count} sends retried",
+      "empty": "Nothing parked or pending.",
+      "attempts": "{count} attempts, created {time}",
+      "openOrder": "Open the order"
+    },
+    "oauth": {
+      "connected": "HubRise connected",
+      "relink_required": "Connected, but the product links belong to another catalog.",
+      "denied": "Access to HubRise was denied.",
+      "invalid_state": "The connection request expired. Start again.",
+      "authorization_failed": "HubRise authorization failed.",
+      "error": "Connecting to HubRise failed."
+    },
+    "layoutBanner": {
+      "authError": "HubRise refused access: exchanges are stopped.",
+      "parked": "{count} send to HubRise is parked | {count} sends to HubRise are parked",
+      "action": "Open"
     }
   }
 }

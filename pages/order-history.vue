@@ -132,6 +132,7 @@
           >
             {{ t(`orders.status.${row.original.status.toLowerCase()}`) }}
           </UBadge>
+          <HubriseOrderBadges :info="row.original.hubrise" class="ml-1.5" />
         </template>
 
         <template #type-cell="{ row }">
@@ -260,6 +261,7 @@
                 <PiliChip size="sm" :tone="statusTone(order.status)">
                   {{ t(`orders.status.${order.status.toLowerCase()}`) }}
                 </PiliChip>
+                <HubriseOrderBadges :info="order.hubrise" />
               </div>
             </div>
           </div>
@@ -349,11 +351,18 @@
 <script lang="ts" setup>
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import HubriseOrderBadges from '~/components/hubrise/OrderBadges.vue'
+import { HUBRISE_ORDER_FIELDS, type HubriseOrderInfo, orderDocument } from '~/utils/hubrise'
 import { brusselsDateISO, brusselsDateTimeLocalToISO, shiftBrusselsDate } from '~/utils/utils'
 
 const { t, locale } = useI18n()
 const isMobile = useIsMobile()
 const { $gqlFetch } = useNuxtApp()
+
+// HubRise: the state of each order is asked only where the server has the integration (an older server would refuse it).
+const { status: hubriseStatus, reload: loadHubriseStatus } = useHubriseStatus()
+if (hubriseStatus.value === null) await loadHubriseStatus()
+const withHubrise = (document: string): string => orderDocument(document, hubriseStatus.value)
 
 // --- State ---
 const currentPage = ref(1)
@@ -372,6 +381,7 @@ interface HistoryOrder {
   totalPrice: string
   displayCustomerName: string
   items: { quantity: number }[]
+  hubrise?: HubriseOrderInfo | null
 }
 
 interface HistorySummary {
@@ -440,7 +450,7 @@ const selectPeriod = (period: HistPeriod | null) => {
 if (isMobile.value) applyPreset('today')
 
 // --- GraphQL ---
-const ORDER_HISTORY_QUERY = /* GraphQL */ `
+const ORDER_HISTORY_QUERY = withHubrise(/* GraphQL */ `
   query OrderHistory($input: OrderHistoryInput) {
     orderHistory(input: $input) {
       summary {
@@ -458,10 +468,11 @@ const ORDER_HISTORY_QUERY = /* GraphQL */ `
         items {
           quantity
         }
+        ${HUBRISE_ORDER_FIELDS}
       }
     }
   }
-`
+`)
 
 const buildInput = (page: number): Record<string, unknown> => {
   const input: Record<string, unknown> = {

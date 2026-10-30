@@ -157,6 +157,7 @@
               <PiliChip v-if="isUnpaidCash(order)" tone="warning">
                 {{ t('orders.payment.status.notPaid') }}
               </PiliChip>
+              <HubriseOrderBadges :info="order.hubrise" />
             </div>
             <span class="text-sm text-muted leading-[1.4]">{{ cardMeta(order) }}</span>
           </button>
@@ -394,6 +395,15 @@
                     {{ paymentChip(order)!.label }}
                   </UBadge>
                 </div>
+
+                <!-- Row 4: where the order stands at HubRise (nothing for an order that never reached it) -->
+                <div
+                  v-if="order.hubrise"
+                  class="pt-1.5 border-t border-default"
+                  data-testid="kanban-hubrise"
+                >
+                  <HubriseOrderBadges :info="order.hubrise" />
+                </div>
               </div>
             </UCard>
 
@@ -629,6 +639,13 @@
             </UButton>
           </div>
 
+          <!-- 5b. HubRise: ids, status, and why staff must look -->
+          <HubriseOrderPanel
+            :order="selectedOrder"
+            :cancelling="isCancelling"
+            @cancel="openCancelDialog"
+          />
+
           <!-- 6. Time Management (simplified: buttons only, no slider) -->
           <div class="border border-default rounded-lg p-3 space-y-3">
             <div class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -827,6 +844,9 @@ import {
   type MobileTab,
 } from '~/utils/orders'
 import { centsToEuros, toCents } from '~/utils/money'
+import HubriseOrderBadges from '~/components/hubrise/OrderBadges.vue'
+import HubriseOrderPanel from '~/components/hubrise/OrderPanel.vue'
+import { HUBRISE_ORDER_FIELDS, orderDocument } from '~/utils/hubrise'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
   brusselsDateISO,
@@ -871,6 +891,7 @@ const {
   updateOrder,
   markAsPaid,
   showCancelDialog,
+  openCancelDialog,
   cancelDelay,
   confirmDisabled,
   confirmCancellation,
@@ -1060,7 +1081,12 @@ const firstStaleOrder = computed(() => staleOrders.value[0] ?? null)
 const paymentChip = (order: Order, detail = false) => buildPaymentChip(order, t, detail)
 
 // GraphQL Queries and Mutations
-const ORDERS_QUERY = /* GraphQL */ `
+// HubRise: the state of each order is asked only where the server has the integration (an older server would refuse it).
+const { status: hubriseStatus, reload: loadHubriseStatus } = useHubriseStatus()
+if (hubriseStatus.value === null) await loadHubriseStatus()
+const withHubrise = (document: string): string => orderDocument(document, hubriseStatus.value)
+
+const ORDERS_QUERY = withHubrise(/* GraphQL */ `
   query {
     orders {
       id
@@ -1125,9 +1151,10 @@ const ORDERS_QUERY = /* GraphQL */ `
           name
         }
       }
+      ${HUBRISE_ORDER_FIELDS}
     }
   }
-`
+`)
 
 const { data: dataOrders, pending } = await useGqlQuery<{ orders: Order[] }>(
   ORDERS_QUERY,
@@ -1161,7 +1188,7 @@ watch(
 const { data: orderUpdated } = useGqlSubscription<{
   orderUpdated: Partial<Order>
 }>(
-  /* GraphQL */ `
+  withHubrise(/* GraphQL */ `
     subscription {
       orderUpdated {
         id
@@ -1171,9 +1198,10 @@ const { data: orderUpdated } = useGqlSubscription<{
         payment {
           status
         }
+        ${HUBRISE_ORDER_FIELDS}
       }
     }
-  `,
+  `),
   {},
 )
 
@@ -1187,7 +1215,7 @@ watch(orderUpdated, (val) => {
 const { data: orderCreated } = useGqlSubscription<{
   orderCreated: Order
 }>(
-  /* GraphQL */ `
+  withHubrise(/* GraphQL */ `
     subscription {
       orderCreated {
         id
@@ -1252,9 +1280,10 @@ const { data: orderCreated } = useGqlSubscription<{
             name
           }
         }
+        ${HUBRISE_ORDER_FIELDS}
       }
     }
-  `,
+  `),
   {},
 )
 

@@ -114,6 +114,7 @@
                     class="size-4 text-warning shrink-0"
                     :title="t('products.translations')"
                   />
+                  <HubriseProductChip :product="product" />
                 </span>
                 <span
                   v-if="getZhName(product)"
@@ -253,6 +254,7 @@
                 <UIcon v-else name="i-lucide-image-off" class="size-4 text-muted" />
               </div>
               <p class="font-medium text-sm text-highlighted truncate">{{ row.original.name }}</p>
+              <HubriseProductChip :product="row.original" />
             </div>
           </template>
 
@@ -441,7 +443,9 @@
 
 <script lang="ts" setup>
 import type { CreateProductInput, Product, ProductCategory, UpdateProductRequest } from '~/types'
+import HubriseProductChip from '~/components/hubrise/ProductChip.vue'
 import { buildGraphqlUpload } from '~/utils/graphqlUpload'
+import { HUBRISE_PRODUCT_FIELDS, hubriseError, productDocument } from '~/utils/hubrise'
 import { computed, ref, watch } from 'vue'
 import {
   useCategoriesStore,
@@ -547,7 +551,13 @@ const columns = computed(() => [
   { accessorKey: 'actions', header: '', enableSorting: false },
 ])
 
-const PRODUCTS_QUERY = /* GraphQL */ `
+// HubRise: its product fields are asked only where the server has the integration (an older server, or one without it,
+// does not know them and would refuse the whole query). The layout loads the same status, the read is shared.
+const { status: hubriseStatus, reload: loadHubriseStatus } = useHubriseStatus()
+if (hubriseStatus.value === null) await loadHubriseStatus()
+const withHubrise = (document: string): string => productDocument(document, hubriseStatus.value)
+
+const PRODUCTS_QUERY = withHubrise(/* GraphQL */ `
   query {
     products {
       id
@@ -586,9 +596,10 @@ const PRODUCTS_QUERY = /* GraphQL */ `
         name
         description
       }
+      ${HUBRISE_PRODUCT_FIELDS}
     }
   }
-`
+`)
 
 const PRODUCT_CATEGORIES_QUERY = /* GraphQL */ `
   query {
@@ -606,7 +617,7 @@ const PRODUCT_CATEGORIES_QUERY = /* GraphQL */ `
   }
 `
 
-const CREATE_PRODUCT_MUTATION = /* GraphQL */ `
+const CREATE_PRODUCT_MUTATION = withHubrise(/* GraphQL */ `
   mutation ($input: CreateProductInput!) {
     createProduct(input: $input) {
       id
@@ -645,11 +656,12 @@ const CREATE_PRODUCT_MUTATION = /* GraphQL */ `
         name
         description
       }
+      ${HUBRISE_PRODUCT_FIELDS}
     }
   }
-`
+`)
 
-const UPDATE_PRODUCT_MUTATION = /* GraphQL */ `
+const UPDATE_PRODUCT_MUTATION = withHubrise(/* GraphQL */ `
   mutation ($id: ID!, $input: UpdateProductInput!) {
     updateProduct(id: $id, input: $input) {
       id
@@ -688,9 +700,10 @@ const UPDATE_PRODUCT_MUTATION = /* GraphQL */ `
         name
         description
       }
+      ${HUBRISE_PRODUCT_FIELDS}
     }
   }
-`
+`)
 
 // Lightweight mutation for inline toggles
 const TOGGLE_PRODUCT_MUTATION = /* GraphQL */ `
@@ -703,7 +716,7 @@ const TOGGLE_PRODUCT_MUTATION = /* GraphQL */ `
   }
 `
 
-const SUB_PRODUCT_UPDATED = /* GraphQL */ `
+const SUB_PRODUCT_UPDATED = withHubrise(/* GraphQL */ `
   subscription ProductUpdated {
     productUpdated {
       id
@@ -720,9 +733,10 @@ const SUB_PRODUCT_UPDATED = /* GraphQL */ `
       vatCategory
       name
       slug
+      ${HUBRISE_PRODUCT_FIELDS}
     }
   }
-`
+`)
 
 // Fetch products
 const { data: dataProducts, pending } = await useGqlQuery<{ products: Product[] }>(
@@ -945,6 +959,12 @@ const handleCreate = async (newProductInput: CreateProductInput): Promise<Produc
   }
 }
 
+// HubRise owns some fields of a product (HUBRISE_MANAGED): say so instead of the generic failure.
+const updateFailedTitle = (failure: unknown): string =>
+  hubriseError(failure).code === 'HUBRISE_MANAGED'
+    ? t('hubrise.errors.managed')
+    : t('orders.errors.updateFailed')
+
 // Handle product updates (edit mode)
 const handleUpdate = async (updateReq: UpdateProductRequest) => {
   let updated: Product
@@ -970,7 +990,7 @@ const handleUpdate = async (updateReq: UpdateProductRequest) => {
 
       if (res.errors?.length) {
         if (import.meta.dev) console.error('GraphQL errors:', res.errors)
-        toast.add({ title: t('orders.errors.updateFailed'), color: 'error' })
+        toast.add({ title: updateFailedTitle(res.errors), color: 'error' })
         return
       }
 
@@ -1001,7 +1021,7 @@ const handleUpdate = async (updateReq: UpdateProductRequest) => {
     selectedProduct.value = null
   } catch (err) {
     if (import.meta.dev) console.error('handleUpdate failed:', err)
-    toast.add({ title: t('orders.errors.updateFailed'), color: 'error' })
+    toast.add({ title: updateFailedTitle(err), color: 'error' })
   }
 }
 

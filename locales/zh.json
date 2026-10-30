@@ -74,7 +74,18 @@
     },
     "itemsCount": "件商品",
     "addShort": "添加",
-    "piecesShort": "件"
+    "piecesShort": "件",
+    "hubrise": {
+      "managed": "由 HubRise 管理",
+      "managedHint": "部分字段来自 HubRise，已锁定。",
+      "published": "已发布",
+      "pending": "待发布",
+      "notPublished": "未发布",
+      "ref": "HubRise 编号：{ref}",
+      "publishedAt": "发布于 {time}",
+      "neverPublished": "尚未发布",
+      "publishNow": "打开发布"
+    }
   },
   "orders": {
     "subtitle": "实时管理您的订单",
@@ -212,7 +223,57 @@
     "articles": "{count} 件商品",
     "cancelOrder": "取消订单",
     "markPaid": "标记已付款",
-    "estimateSaved": "预计时间已保存"
+    "estimateSaved": "预计时间已保存",
+    "hubrise": {
+      "title": "HubRise",
+      "orderId": "HubRise 订单",
+      "pushedAt": "发送于",
+      "remoteStatus": "HubRise 状态",
+      "remoteTotal": "HubRise 总额",
+      "needsAttention": "需处理",
+      "cancelAndRefund": "取消并退款",
+      "push": {
+        "pending": "HubRise：待发送",
+        "sent": "HubRise：已发送",
+        "parked": "HubRise：已搁置",
+        "skipped": "HubRise：已跳过",
+        "unknown": "HubRise"
+      },
+      "attention": {
+        "unlinkedItem": {
+          "title": "未关联商品",
+          "body": "订单中的商品未关联到 HubRise 商品。请先关联后重试发送。"
+        },
+        "totalMismatch": {
+          "title": "总额不一致",
+          "body": "HubRise 算出的总额与我们的不同。请先核对订单。"
+        },
+        "notAccepted": {
+          "title": "订单未被接受",
+          "body": "HubRise 未接受该订单。详情请见发送队列。"
+        },
+        "statusConflict": {
+          "title": "状态冲突",
+          "body": "HubRise 中的状态与我们的不同，请确认哪个正确。"
+        },
+        "deliveryFailed": {
+          "title": "发送失败",
+          "body": "订单无法发送到 HubRise。请在发送队列中重试。"
+        },
+        "remoteCancelFailed": {
+          "title": "HubRise 取消失败",
+          "body": "取消未能传给 HubRise。请同时在 HubRise 中取消。"
+        },
+        "remoteCancelledPaid": {
+          "title": "HubRise 已取消，但已付款",
+          "body": "订单在 HubRise 已取消，但客户已付款。请在此取消以退款。"
+        },
+        "unknown": {
+          "title": "需要处理",
+          "body": "此订单需要在 HubRise 中核对。"
+        }
+      }
+    }
   },
   "orderHistory": {
     "title": "订单历史",
@@ -344,7 +405,8 @@
     "settings": "设置",
     "logout": "登出",
     "more": "更多",
-    "assistant": "助手"
+    "assistant": "助手",
+    "hubrise": "HubRise"
   },
   "settings": {
     "security": {
@@ -544,6 +606,322 @@
       "unavailable": "助手服务暂时没有响应，请稍后再试。",
       "limitReached": "名额已满，请先移除一个账号。",
       "notFound": "找不到这个账号或链接，请刷新页面。"
+    }
+  },
+  "hubrise": {
+    "title": "HubRise",
+    "description": "后台是菜单的唯一来源。HubRise 接收菜单并同步给收银系统。",
+    "loading": "正在加载 HubRise...",
+    "loadFailed": "无法读取 HubRise 状态。",
+    "notAvailable": "此服务器未配置 HubRise。",
+    "attention": "{count} 个订单需要处理 | {count} 个订单需要处理",
+    "status": {
+      "notConnected": "未连接",
+      "enabled": "已启用",
+      "paused": "已暂停"
+    },
+    "actions": {
+      "reconnect": "重新连接",
+      "forgetLinks": "清除关联",
+      "reviewImport": "查看导入",
+      "acknowledge": "知道了",
+      "preview": "查看发布",
+      "import": "导入"
+    },
+    "banners": {
+      "authError": "自 {since} 起 HubRise 拒绝访问，请重新连接账户。",
+      "relinkRequired": "商品关联属于另一个目录。请清除后重新开始。",
+      "reconnectForWrite": "当前连接无法写入目录。请重新连接 HubRise 以授予该权限。",
+      "accountCatalog": "该目录在 HubRise 账户层级共享，无法从这里发布。",
+      "pendingReview": "有一个导入等待您确认。",
+      "externalChange": "目录于 {at} 在 HubRise 中被修改。下次发布将覆盖这些更改。",
+      "removalsConfirm": "此次发布会删除 HubRise 中的内容，需要输入确认。",
+      "updateAvailable": "HubRise 目录已更改，可以导入。"
+    },
+    "errors": {
+      "generic": "HubRise 出现错误。",
+      "notConfigured": "此服务器未配置 HubRise。",
+      "notConnected": "尚未连接 HubRise 账户。",
+      "notEnabled": "HubRise 集成已暂停，请先启用。",
+      "relinkRequired": "关联属于另一个目录，请先清除。",
+      "previewRequired": "应用前请先查看预览。",
+      "retireConfirmRequired": "导入前请确认下架商品。",
+      "emptyCatalog": "HubRise 目录为空。",
+      "busy": "同步正在进行中，请稍后重试。",
+      "skuLinked": "该商品已关联到另一个 HubRise 项目。",
+      "managed": "该字段由 HubRise 管理，无法在此修改。",
+      "upstream": "HubRise 返回了错误（{status}）。",
+      "publishMode": "当前为发布模式，无法导入。",
+      "directionConflict": "目录方向已发生变化，请刷新页面。",
+      "reconnectRequired": "请重新连接 HubRise 以授予目录写入权限。",
+      "accountCatalog": "该目录在账户层级共享，无法发布。",
+      "notPublishMode": "未启用发布模式。",
+      "previewStale": "预览之后菜单已变化。预览已重新加载，请再次确认。",
+      "publishConfirmRequired": "此次发布会删除内容，请明确确认。",
+      "publishBlocked": "发布被阻止，请先处理所提示的问题。",
+      "publishPendingChanges": "菜单更改仍在处理中，请稍后重试。",
+      "rateLimited": "HubRise 限制了请求频率，请 {seconds} 秒后重试。",
+      "emptyMenu": "菜单为空，没有可发布的内容。"
+    },
+    "publish": {
+      "errors": {
+        "writeScopeMissing": "HubRise 连接无法写入目录，请重新连接。",
+        "removalsNeedConfirm": "此次发布会删除 HubRise 中的大量内容，已暂停。请预览并确认。",
+        "accountCatalog": "目录在 HubRise 账户层级共享，无法发布。",
+        "catalogNotFound": "找不到 HubRise 目录，请检查连接。{detail}",
+        "rejected": "HubRise 拒绝了上次发布。{detail}",
+        "invalidMenu": "菜单存在错误，无法发布。{detail}",
+        "unavailable": "HubRise 暂不可用，将自动重试。{detail}",
+        "auth": "HubRise 拒绝访问，请重新连接账户。"
+      },
+      "intro": "每次菜单修改都会发布到 HubRise 目录，收银系统读取该目录。",
+      "statusTitle": "发布",
+      "phase": {
+        "awaitingFirst": "待首次发布",
+        "paused": "已暂停",
+        "publishing": "发布中",
+        "pending": "有待发布的更改",
+        "upToDate": "已是最新"
+      },
+      "nextIn": "下次发布：{time} 后",
+      "nextUnknown": "即将发布",
+      "awaitingFirst": "请查看预览并确认，以首次发布菜单。",
+      "lastPublished": "上次发布",
+      "never": "从未",
+      "products": "商品",
+      "productsCount": "已发布 {published}，待发布 {pending}",
+      "previewButton": "预览并发布",
+      "queued": "发布已排队",
+      "published": "菜单已发布"
+    },
+    "direction": {
+      "title": "目录方向",
+      "intro": "选择菜单的来源：由后台发布到 HubRise，或从 HubRise 导入。",
+      "current": "当前",
+      "dialogTitle": "更改目录方向",
+      "confirmButton": "确认更改",
+      "changed": "目录方向已更改",
+      "acknowledgeOverwrite": "我了解 HubRise 目录将被覆盖。",
+      "options": {
+        "NONE": {
+          "title": "无",
+          "description": "菜单既不导入也不发布。"
+        },
+        "IMPORT": {
+          "title": "从 HubRise 导入",
+          "description": "以 HubRise 为菜单来源，后台接收菜单。"
+        },
+        "PUBLISH": {
+          "title": "发布到 HubRise",
+          "description": "以后台为菜单来源，HubRise 接收菜单（推荐）。"
+        }
+      },
+      "blocked": {
+        "reconnectRequired": "请重新连接 HubRise 后才能发布。",
+        "notConnected": "请先连接 HubRise 账户。"
+      },
+      "confirm": {
+        "noneToImport": "菜单将从 HubRise 导入，任何更改前都会显示预览。",
+        "noneToPublish": "后台将成为菜单来源并发布到 HubRise。",
+        "importToNone": "将停止从 HubRise 导入，现有商品保留。",
+        "importToPublish": "后台将成为菜单来源：在 HubRise 中的修改将被覆盖。",
+        "publishToNone": "将停止向 HubRise 发布，HubRise 目录保持现状。",
+        "publishToImport": "HubRise 将重新成为菜单来源，任何更改前都会显示预览。"
+      }
+    },
+    "import": {
+      "intro": {
+        "NONE": "目前没有启用目录同步。",
+        "IMPORT": "将 HubRise 目录导入菜单，任何更改前都会先预览。",
+        "PUBLISH": "在发布模式下，导入仅用于关联现有商品。"
+      },
+      "modes": {
+        "LINK_ONLY": "仅关联",
+        "FULL": "完整导入"
+      },
+      "modeHint": {
+        "LINK_ONLY": "把现有商品关联到 HubRise，不做其他修改。",
+        "FULL": "按 HubRise 创建、更新和下架商品。"
+      },
+      "preview": "预览导入",
+      "apply": {
+        "LINK_ONLY": "应用关联",
+        "FULL": "应用导入"
+      },
+      "enableFirst": "请先启用 HubRise 集成。",
+      "loading": "正在计算预览...",
+      "linked": "已关联 {count} 个商品",
+      "unchanged": "{count} 个无变化",
+      "retiring": "{count} 个待下架",
+      "noChanges": "没有更改",
+      "conflicts": "冲突",
+      "warnings": "警告",
+      "actions": {
+        "RETIRE": "下架（{count}）",
+        "UPDATE": "更新（{count}）",
+        "CREATE": "新建（{count}）",
+        "LINK": "关联（{count}）",
+        "REVIVE": "恢复（{count}）"
+      },
+      "confirmRetire": "我确认下架 {count} 个商品",
+      "applied": "导入已应用",
+      "waitingReview": "导入等待确认",
+      "notApplied": "导入未应用",
+      "failedBatches": "失败批次：{batches}"
+    },
+    "preview": {
+      "title": "发布预览",
+      "description": "这是 HubRise 目录将发生的变化。",
+      "loading": "正在计算预览...",
+      "retryIn": "请在 {time} 后重试",
+      "retry": "重试",
+      "firstPublish": "首次发布：整个菜单将发送到 HubRise。",
+      "counts": {
+        "added": "新增",
+        "updated": "修改",
+        "removed": "删除",
+        "unchanged": "无变化",
+        "foreign": "外部"
+      },
+      "rowCounts": "+{added} ~{updated} -{removed}",
+      "nothingToDo": "无需发布：HubRise 已是最新。",
+      "actions": {
+        "REMOVE": "删除（{count}）",
+        "UPDATE": "修改（{count}）",
+        "ADD": "新增（{count}）"
+      },
+      "truncated": "列表已截断，仅显示前面的更改。",
+      "foreignTitle": "{count} 个项目不在菜单中",
+      "foreignHint": "这些项目存在于 HubRise 但不在菜单中，默认保留。",
+      "removeForeign": "从 HubRise 删除这 {count} 个项目",
+      "preserved": "在 HubRise 中保留",
+      "warnings": "警告",
+      "blockers": "阻止项",
+      "typedPrompt": "要确认删除 {count} 个项目，请输入该数字。",
+      "typedLabel": "确认",
+      "confirm": "发布",
+      "confirmFirst": "发布菜单"
+    },
+    "entities": {
+      "CATEGORY": "分类",
+      "PRODUCT": "商品",
+      "CHOICE_GROUP": "选项组",
+      "CHOICE": "选项"
+    },
+    "connection": {
+      "title": "连接",
+      "account": "账户",
+      "location": "门店",
+      "catalog": "目录",
+      "customerList": "客户列表",
+      "lastEvent": "最近事件",
+      "lastCatalogSync": "上次目录同步",
+      "disconnect": "断开连接",
+      "disconnectHint": "停止与 HubRise 的交换，商品关联保留。",
+      "forgetLinks": "清除商品关联",
+      "disconnectConfirm": "是，断开",
+      "disconnected": "HubRise 已断开",
+      "linksForgotten": "已清除 {count} 个关联",
+      "notConnected": "尚未连接 HubRise 账户。",
+      "connect": "连接 HubRise"
+    },
+    "features": {
+      "title": "功能",
+      "description": "逐步启用各项数据交换。",
+      "enabled": "集成已启用",
+      "enabledHint": "关闭后所有交换将暂停。",
+      "enabledRelink": "请先清除商品关联后再启用集成。",
+      "pausedHint": "集成已暂停，不会进行任何数据交换。",
+      "syncInventoryNow": "立即同步库存",
+      "inventorySynced": "库存已同步（{count}）",
+      "unlinked": "{count} 个未关联商品"
+    },
+    "toggles": {
+      "pushOrders": "发送订单",
+      "syncStatus": "同步状态",
+      "syncCustomers": "同步客户",
+      "syncInventory": "同步库存",
+      "autoRefundOnCancel": "取消时自动退款",
+      "catalogAutoImport": "自动导入目录",
+      "importImages": "导入图片",
+      "publishImages": "发布图片"
+    },
+    "hints": {
+      "pushOrders": "新订单会发送到 HubRise。",
+      "pushOrdersUnlinked": "{count} 个商品未关联：包含它们的订单需人工确认。",
+      "syncStatus": "订单状态与 HubRise 保持一致。",
+      "syncCustomers": "客户会发送到 HubRise 客户列表。",
+      "syncInventory": "缺货信息会与 HubRise 共享。",
+      "autoRefundOnCancel": "在 HubRise 取消的订单将自动退款，无需手动操作。",
+      "catalogAutoImport": "HubRise 目录的更改将不经确认直接导入。",
+      "importImages": "沿用 HubRise 目录中的图片。",
+      "publishImages": "商品图片随菜单一起发布。"
+    },
+    "catalog": {
+      "title": "目录"
+    },
+    "platformPrices": {
+      "title": "各平台价格",
+      "description": "每个平台在 HubRise 中读取自己的规格：菜单价格加上加价，包括选项。请在该平台的 bridge 中选择此规格。",
+      "name": "平台",
+      "variantRef": "规格编号",
+      "markupPercent": "加价 (%)",
+      "roundToCents": "向上取整到倍数 (分)",
+      "add": "添加平台",
+      "remove": "移除"
+    },
+    "options": {
+      "title": "选项",
+      "description": "与 HubRise 对应关系的高级设置。",
+      "catalogLanguage": "目录语言",
+      "variantRef": "规格编号",
+      "channelName": "渠道名称",
+      "deliveryChargeRef": "配送费编号",
+      "paymentFeeChargeRef": "支付手续费编号",
+      "optional": "可选",
+      "languages": {
+        "fr": "法语",
+        "en": "英语",
+        "nl": "荷兰语",
+        "zh": "中文"
+      }
+    },
+    "outbox": {
+      "title": "发送队列",
+      "summary": "待发送 {pending}，已搁置 {parked}",
+      "states": {
+        "PARKED": "已搁置",
+        "PENDING": "待发送",
+        "SENDING": "发送中",
+        "SENT": "已发送",
+        "SKIPPED": "已跳过"
+      },
+      "kinds": {
+        "ORDER_CREATE": "新订单",
+        "ORDER_STATUS": "订单状态",
+        "INVENTORY": "库存",
+        "CUSTOMER": "客户",
+        "CUSTOMER_ANONYMISE": "客户匿名化"
+      },
+      "retryAll": "全部重试",
+      "retry": "重试",
+      "retried": "已重试 {count} 项",
+      "empty": "没有搁置或待发送的项目。",
+      "attempts": "已尝试 {count} 次，创建于 {time}",
+      "openOrder": "打开订单"
+    },
+    "oauth": {
+      "connected": "HubRise 已连接",
+      "relink_required": "已连接，但商品关联属于另一个目录。",
+      "denied": "HubRise 访问被拒绝。",
+      "invalid_state": "连接请求已过期，请重试。",
+      "authorization_failed": "HubRise 授权失败。",
+      "error": "连接 HubRise 失败。"
+    },
+    "layoutBanner": {
+      "authError": "HubRise 拒绝访问：数据交换已停止。",
+      "parked": "{count} 项发往 HubRise 的内容被搁置 | {count} 项发往 HubRise 的内容被搁置",
+      "action": "查看"
     }
   }
 }

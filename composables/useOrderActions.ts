@@ -3,6 +3,7 @@ import { useI18n } from 'vue-i18n'
 import { useGqlMutation, useToast } from '#imports'
 import type { Order, OrderStatus } from '~/types'
 import { formatTimeOnly, timeToRFC3339 } from '~/utils/utils'
+import { HUBRISE_ORDER_FIELDS } from '~/utils/hubrise'
 import { getAllowedStatuses, updateOrderErrorKey } from '~/utils/orders'
 import { useOrdersStore } from '~/stores/orders'
 import { hasText } from '~/utils/guards'
@@ -34,7 +35,8 @@ const UPDATE_PAYMENT_STATUS_MUTATION = /* GraphQL */ `
   }
 `
 
-// Same fields as the orders list query in pages/orders.vue
+// Same fields as the orders list query in pages/orders.vue. A caller goes through orderDocument for a
+// server without HubRise.
 export const ORDER_BY_ID_QUERY = /* GraphQL */ `
   query ($id: ID!) {
     order(id: $id) {
@@ -100,6 +102,7 @@ export const ORDER_BY_ID_QUERY = /* GraphQL */ `
           name
         }
       }
+      ${HUBRISE_ORDER_FIELDS}
     }
   }
 `

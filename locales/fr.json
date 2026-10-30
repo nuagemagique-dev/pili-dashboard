@@ -74,7 +74,18 @@
     },
     "itemsCount": "articles",
     "addShort": "Ajouter",
-    "piecesShort": "pcs"
+    "piecesShort": "pcs",
+    "hubrise": {
+      "managed": "Géré par HubRise",
+      "managedHint": "Certains champs viennent de HubRise et sont verrouillés.",
+      "published": "Publié",
+      "pending": "À publier",
+      "notPublished": "Non publié",
+      "ref": "Réf. HubRise : {ref}",
+      "publishedAt": "Publié le {time}",
+      "neverPublished": "Pas encore publié",
+      "publishNow": "Ouvrir la publication"
+    }
   },
   "orders": {
     "subtitle": "Gérez vos commandes en temps réel",
@@ -212,7 +223,57 @@
     "articles": "{count} article | {count} articles",
     "cancelOrder": "Annuler la commande",
     "markPaid": "Marquer payé",
-    "estimateSaved": "Estimation enregistrée"
+    "estimateSaved": "Estimation enregistrée",
+    "hubrise": {
+      "title": "HubRise",
+      "orderId": "Commande HubRise",
+      "pushedAt": "Envoyée le",
+      "remoteStatus": "Statut HubRise",
+      "remoteTotal": "Total HubRise",
+      "needsAttention": "À traiter",
+      "cancelAndRefund": "Annuler et rembourser",
+      "push": {
+        "pending": "HubRise : en attente",
+        "sent": "HubRise : envoyée",
+        "parked": "HubRise : bloquée",
+        "skipped": "HubRise : ignorée",
+        "unknown": "HubRise"
+      },
+      "attention": {
+        "unlinkedItem": {
+          "title": "Produit non lié",
+          "body": "Un article de la commande n'est lié à aucun produit HubRise. Liez-le puis relancez l'envoi."
+        },
+        "totalMismatch": {
+          "title": "Total différent",
+          "body": "HubRise a calculé un total différent du nôtre. Vérifiez la commande avant de continuer."
+        },
+        "notAccepted": {
+          "title": "Commande non acceptée",
+          "body": "HubRise n'a pas accepté la commande. Consultez la file d'envoi pour le détail."
+        },
+        "statusConflict": {
+          "title": "Conflit de statut",
+          "body": "Le statut dans HubRise diffère du nôtre. Vérifiez lequel est le bon."
+        },
+        "deliveryFailed": {
+          "title": "Envoi échoué",
+          "body": "La commande n'a pas pu être envoyée à HubRise. Relancez l'envoi depuis la file."
+        },
+        "remoteCancelFailed": {
+          "title": "Annulation HubRise échouée",
+          "body": "L'annulation n'a pas pu être transmise à HubRise. Annulez-la aussi dans HubRise."
+        },
+        "remoteCancelledPaid": {
+          "title": "Annulée dans HubRise, déjà payée",
+          "body": "La commande a été annulée dans HubRise alors qu'elle est payée. Annulez-la ici pour rembourser le client."
+        },
+        "unknown": {
+          "title": "Action requise",
+          "body": "Cette commande demande une vérification dans HubRise."
+        }
+      }
+    }
   },
   "orderHistory": {
     "title": "Historique des commandes",
@@ -344,7 +405,8 @@
     "settings": "Paramètres",
     "logout": "Déconnexion",
     "more": "Plus",
-    "assistant": "Assistant"
+    "assistant": "Assistant",
+    "hubrise": "HubRise"
   },
   "settings": {
     "security": {
@@ -544,6 +606,322 @@
       "unavailable": "Le service de l'assistant ne répond pas pour le moment. Réessayez plus tard.",
       "limitReached": "Toutes les places sont prises, retirez d'abord un compte.",
       "notFound": "Ce compte ou ce lien n'existe plus, rafraîchissez la page."
+    }
+  },
+  "hubrise": {
+    "title": "HubRise",
+    "description": "Le tableau de bord est la source unique du menu. HubRise le reçoit et le distribue à la caisse.",
+    "loading": "Chargement de HubRise...",
+    "loadFailed": "Impossible de lire l'état de HubRise.",
+    "notAvailable": "HubRise n'est pas configuré sur ce serveur.",
+    "attention": "{count} commande à traiter | {count} commandes à traiter",
+    "status": {
+      "notConnected": "Non connecté",
+      "enabled": "Actif",
+      "paused": "En pause"
+    },
+    "actions": {
+      "reconnect": "Reconnecter",
+      "forgetLinks": "Oublier les liens",
+      "reviewImport": "Vérifier l'import",
+      "acknowledge": "Compris",
+      "preview": "Voir la publication",
+      "import": "Importer"
+    },
+    "banners": {
+      "authError": "HubRise a refusé l'accès depuis le {since}. Reconnectez le compte.",
+      "relinkRequired": "Les liens des produits appartiennent à un autre catalogue. Oubliez-les pour repartir de zéro.",
+      "reconnectForWrite": "La connexion ne permet pas d'écrire le catalogue. Reconnectez HubRise pour accorder ce droit.",
+      "accountCatalog": "Ce catalogue est partagé au niveau du compte HubRise : il ne peut pas être publié depuis ici.",
+      "pendingReview": "Un import attend votre validation.",
+      "externalChange": "Le catalogue a été modifié dans HubRise le {at}. La prochaine publication écrasera ces changements.",
+      "removalsConfirm": "Cette publication supprime des éléments dans HubRise. Une confirmation écrite est nécessaire.",
+      "updateAvailable": "Le catalogue HubRise a changé. Vous pouvez l'importer."
+    },
+    "errors": {
+      "generic": "Une erreur HubRise est survenue.",
+      "notConfigured": "HubRise n'est pas configuré sur ce serveur.",
+      "notConnected": "Aucun compte HubRise n'est connecté.",
+      "notEnabled": "L'intégration HubRise est en pause. Activez-la d'abord.",
+      "relinkRequired": "Les liens appartiennent à un autre catalogue. Oubliez-les d'abord.",
+      "previewRequired": "Affichez d'abord l'aperçu avant d'appliquer.",
+      "retireConfirmRequired": "Confirmez le retrait des produits avant d'importer.",
+      "emptyCatalog": "Le catalogue HubRise est vide.",
+      "busy": "Une synchronisation est déjà en cours. Réessayez dans un instant.",
+      "skuLinked": "Ce produit est déjà lié à un autre élément HubRise.",
+      "managed": "Ce champ est géré par HubRise et ne peut pas être modifié ici.",
+      "upstream": "HubRise a répondu avec une erreur ({status}).",
+      "publishMode": "Le mode publication est actif : l'import n'est pas disponible.",
+      "directionConflict": "Le sens du catalogue a changé entre-temps. Rechargez la page.",
+      "reconnectRequired": "Reconnectez HubRise pour accorder le droit d'écriture du catalogue.",
+      "accountCatalog": "Ce catalogue est partagé au niveau du compte : il ne peut pas être publié.",
+      "notPublishMode": "Le mode publication n'est pas actif.",
+      "previewStale": "Le menu a changé depuis l'aperçu. L'aperçu a été rechargé, vérifiez-le.",
+      "publishConfirmRequired": "Cette publication supprime des éléments : confirmez-la explicitement.",
+      "publishBlocked": "La publication est bloquée : corrigez d'abord les points signalés.",
+      "publishPendingChanges": "Des modifications du menu sont encore en cours de traitement. Réessayez dans un instant.",
+      "rateLimited": "HubRise limite les requêtes. Réessayez dans {seconds} s.",
+      "emptyMenu": "Le menu est vide : rien à publier."
+    },
+    "publish": {
+      "errors": {
+        "writeScopeMissing": "La connexion HubRise ne permet pas d'écrire le catalogue. Reconnectez-la.",
+        "removalsNeedConfirm": "La publication supprimerait de nombreux éléments dans HubRise et est suspendue. Prévisualisez-la et confirmez.",
+        "accountCatalog": "Le catalogue est partagé au niveau du compte HubRise : publication impossible.",
+        "catalogNotFound": "Le catalogue HubRise est introuvable. Vérifiez la connexion. {detail}",
+        "rejected": "HubRise a refusé la dernière publication. {detail}",
+        "invalidMenu": "Le menu contient des erreurs qui empêchent la publication. {detail}",
+        "unavailable": "HubRise est indisponible, nouvelle tentative automatique. {detail}",
+        "auth": "HubRise a refusé l'accès. Reconnectez le compte."
+      },
+      "intro": "Chaque modification du menu est publiée vers le catalogue HubRise. La caisse lit ce catalogue.",
+      "statusTitle": "Publication",
+      "phase": {
+        "awaitingFirst": "Première publication à faire",
+        "paused": "En pause",
+        "publishing": "Publication en cours",
+        "pending": "Modifications en attente",
+        "upToDate": "À jour"
+      },
+      "nextIn": "Prochaine publication dans {time}",
+      "nextUnknown": "Prochaine publication bientôt",
+      "awaitingFirst": "Affichez l'aperçu et confirmez pour publier le menu une première fois.",
+      "lastPublished": "Dernière publication",
+      "never": "Jamais",
+      "products": "Produits",
+      "productsCount": "{published} publiés, {pending} en attente",
+      "previewButton": "Aperçu et publication",
+      "queued": "Publication mise en file",
+      "published": "Menu publié"
+    },
+    "direction": {
+      "title": "Sens du catalogue",
+      "intro": "Choisissez qui est la source du menu. Le tableau de bord publie vers HubRise, ou HubRise est importé.",
+      "current": "Actuel",
+      "dialogTitle": "Changer le sens du catalogue",
+      "confirmButton": "Confirmer le changement",
+      "changed": "Sens du catalogue modifié",
+      "acknowledgeOverwrite": "Je comprends que le catalogue HubRise sera écrasé.",
+      "options": {
+        "NONE": {
+          "title": "Aucun",
+          "description": "Le menu n'est ni importé ni publié."
+        },
+        "IMPORT": {
+          "title": "Importer depuis HubRise",
+          "description": "HubRise est la source du menu, le tableau de bord le reçoit."
+        },
+        "PUBLISH": {
+          "title": "Publier vers HubRise",
+          "description": "Le tableau de bord est la source du menu, HubRise le reçoit (recommandé)."
+        }
+      },
+      "blocked": {
+        "reconnectRequired": "Reconnectez HubRise pour pouvoir publier.",
+        "notConnected": "Connectez d'abord un compte HubRise."
+      },
+      "confirm": {
+        "noneToImport": "Le menu sera importé depuis HubRise. Un aperçu est affiché avant toute modification.",
+        "noneToPublish": "Le tableau de bord deviendra la source du menu et le publiera vers HubRise.",
+        "importToNone": "L'import depuis HubRise sera arrêté. Les produits existants sont conservés.",
+        "importToPublish": "Le tableau de bord devient la source du menu : les modifications faites dans HubRise seront écrasées.",
+        "publishToNone": "La publication vers HubRise sera arrêtée. Le catalogue HubRise reste tel quel.",
+        "publishToImport": "HubRise redevient la source du menu. Un aperçu est affiché avant toute modification."
+      }
+    },
+    "import": {
+      "intro": {
+        "NONE": "Aucune synchronisation du catalogue n'est active.",
+        "IMPORT": "Importez le catalogue HubRise vers le menu. Un aperçu précède toute modification.",
+        "PUBLISH": "En mode publication, l'import ne sert qu'à lier les produits existants."
+      },
+      "modes": {
+        "LINK_ONLY": "Lier seulement",
+        "FULL": "Import complet"
+      },
+      "modeHint": {
+        "LINK_ONLY": "Associe les produits existants à HubRise sans rien modifier d'autre.",
+        "FULL": "Crée, met à jour et retire les produits selon HubRise."
+      },
+      "preview": "Aperçu de l'import",
+      "apply": {
+        "LINK_ONLY": "Appliquer les liens",
+        "FULL": "Appliquer l'import"
+      },
+      "enableFirst": "Activez d'abord l'intégration HubRise.",
+      "loading": "Calcul de l'aperçu...",
+      "linked": "{count} produits liés",
+      "unchanged": "{count} inchangés",
+      "retiring": "{count} à retirer",
+      "noChanges": "Aucun changement",
+      "conflicts": "Conflits",
+      "warnings": "Avertissements",
+      "actions": {
+        "RETIRE": "Retirés ({count})",
+        "UPDATE": "Mis à jour ({count})",
+        "CREATE": "Créés ({count})",
+        "LINK": "Liés ({count})",
+        "REVIVE": "Réactivés ({count})"
+      },
+      "confirmRetire": "Je confirme le retrait de {count} produits",
+      "applied": "Import appliqué",
+      "waitingReview": "Import en attente de validation",
+      "notApplied": "L'import n'a pas été appliqué",
+      "failedBatches": "Lots en échec : {batches}"
+    },
+    "preview": {
+      "title": "Aperçu de la publication",
+      "description": "Voici ce qui changera dans le catalogue HubRise.",
+      "loading": "Calcul de l'aperçu...",
+      "retryIn": "Réessayez dans {time}",
+      "retry": "Réessayer",
+      "firstPublish": "Première publication : tout le menu sera envoyé à HubRise.",
+      "counts": {
+        "added": "Ajoutés",
+        "updated": "Modifiés",
+        "removed": "Supprimés",
+        "unchanged": "Inchangés",
+        "foreign": "Étrangers"
+      },
+      "rowCounts": "+{added} ~{updated} -{removed}",
+      "nothingToDo": "Rien à publier : HubRise est déjà à jour.",
+      "actions": {
+        "REMOVE": "Supprimés ({count})",
+        "UPDATE": "Modifiés ({count})",
+        "ADD": "Ajoutés ({count})"
+      },
+      "truncated": "La liste est tronquée : seuls les premiers changements sont affichés.",
+      "foreignTitle": "{count} éléments absents du menu",
+      "foreignHint": "Ces éléments existent dans HubRise mais pas dans le menu. Par défaut ils sont conservés.",
+      "removeForeign": "Supprimer ces {count} éléments de HubRise",
+      "preserved": "Conservé dans HubRise",
+      "warnings": "Avertissements",
+      "blockers": "Points bloquants",
+      "typedPrompt": "Pour confirmer la suppression de {count} éléments, saisissez ce nombre.",
+      "typedLabel": "Confirmation",
+      "confirm": "Publier",
+      "confirmFirst": "Publier le menu"
+    },
+    "entities": {
+      "CATEGORY": "Catégorie",
+      "PRODUCT": "Produit",
+      "CHOICE_GROUP": "Groupe de choix",
+      "CHOICE": "Choix"
+    },
+    "connection": {
+      "title": "Connexion",
+      "account": "Compte",
+      "location": "Établissement",
+      "catalog": "Catalogue",
+      "customerList": "Liste clients",
+      "lastEvent": "Dernier événement",
+      "lastCatalogSync": "Dernière synchro du catalogue",
+      "disconnect": "Déconnecter",
+      "disconnectHint": "Arrête les échanges avec HubRise. Les liens des produits sont conservés.",
+      "forgetLinks": "Oublier les liens produits",
+      "disconnectConfirm": "Oui, déconnecter",
+      "disconnected": "HubRise déconnecté",
+      "linksForgotten": "{count} liens oubliés",
+      "notConnected": "Aucun compte HubRise n'est connecté.",
+      "connect": "Connecter HubRise"
+    },
+    "features": {
+      "title": "Fonctionnalités",
+      "description": "Activez les échanges étape par étape.",
+      "enabled": "Intégration active",
+      "enabledHint": "Désactivez pour mettre tous les échanges en pause.",
+      "enabledRelink": "Oubliez d'abord les liens produits pour activer l'intégration.",
+      "pausedHint": "L'intégration est en pause : aucun échange n'a lieu.",
+      "syncInventoryNow": "Synchroniser le stock maintenant",
+      "inventorySynced": "Stock synchronisé ({count})",
+      "unlinked": "{count} produits non liés"
+    },
+    "toggles": {
+      "pushOrders": "Envoyer les commandes",
+      "syncStatus": "Synchroniser les statuts",
+      "syncCustomers": "Synchroniser les clients",
+      "syncInventory": "Synchroniser le stock",
+      "autoRefundOnCancel": "Rembourser automatiquement à l'annulation",
+      "catalogAutoImport": "Importer le catalogue automatiquement",
+      "importImages": "Importer les images",
+      "publishImages": "Publier les images"
+    },
+    "hints": {
+      "pushOrders": "Les nouvelles commandes sont envoyées à HubRise.",
+      "pushOrdersUnlinked": "{count} produits ne sont pas liés : les commandes qui les contiennent attendront une vérification.",
+      "syncStatus": "Les statuts de commande restent alignés avec HubRise.",
+      "syncCustomers": "Les clients sont envoyés à la liste clients HubRise.",
+      "syncInventory": "Les ruptures de stock sont partagées avec HubRise.",
+      "autoRefundOnCancel": "Une commande annulée dans HubRise est remboursée sans action manuelle.",
+      "catalogAutoImport": "Les changements du catalogue HubRise sont importés sans validation.",
+      "importImages": "Les images du catalogue HubRise sont reprises.",
+      "publishImages": "Les images des produits sont publiées avec le menu."
+    },
+    "catalog": {
+      "title": "Catalogue"
+    },
+    "platformPrices": {
+      "title": "Prix par plateforme",
+      "description": "Chaque plateforme lit sa variante dans HubRise : les prix du menu plus une majoration, options comprises. Choisissez cette variante dans le bridge de la plateforme.",
+      "name": "Plateforme",
+      "variantRef": "Référence de variante",
+      "markupPercent": "Majoration (%)",
+      "roundToCents": "Arrondi au multiple supérieur (cents)",
+      "add": "Ajouter une plateforme",
+      "remove": "Retirer"
+    },
+    "options": {
+      "title": "Options",
+      "description": "Réglages avancés de la correspondance avec HubRise.",
+      "catalogLanguage": "Langue du catalogue",
+      "variantRef": "Référence de variante",
+      "channelName": "Nom du canal",
+      "deliveryChargeRef": "Référence des frais de livraison",
+      "paymentFeeChargeRef": "Référence des frais de paiement",
+      "optional": "Facultatif",
+      "languages": {
+        "fr": "Français",
+        "en": "Anglais",
+        "nl": "Néerlandais",
+        "zh": "Chinois"
+      }
+    },
+    "outbox": {
+      "title": "File d'envoi",
+      "summary": "{pending} en attente, {parked} bloqués",
+      "states": {
+        "PARKED": "Bloqué",
+        "PENDING": "En attente",
+        "SENDING": "Envoi",
+        "SENT": "Envoyé",
+        "SKIPPED": "Ignoré"
+      },
+      "kinds": {
+        "ORDER_CREATE": "Nouvelle commande",
+        "ORDER_STATUS": "Statut de commande",
+        "INVENTORY": "Stock",
+        "CUSTOMER": "Client",
+        "CUSTOMER_ANONYMISE": "Anonymisation client"
+      },
+      "retryAll": "Tout relancer",
+      "retry": "Relancer",
+      "retried": "{count} envois relancés",
+      "empty": "Aucun envoi bloqué ou en attente.",
+      "attempts": "{count} essais, créé le {time}",
+      "openOrder": "Ouvrir la commande"
+    },
+    "oauth": {
+      "connected": "HubRise connecté",
+      "relink_required": "Connecté, mais les liens produits appartiennent à un autre catalogue.",
+      "denied": "L'accès à HubRise a été refusé.",
+      "invalid_state": "La demande de connexion a expiré. Recommencez.",
+      "authorization_failed": "L'autorisation HubRise a échoué.",
+      "error": "La connexion à HubRise a échoué."
+    },
+    "layoutBanner": {
+      "authError": "HubRise a refusé l'accès : les échanges sont arrêtés.",
+      "parked": "{count} envoi vers HubRise est bloqué | {count} envois vers HubRise sont bloqués",
+      "action": "Ouvrir"
     }
   }
 }

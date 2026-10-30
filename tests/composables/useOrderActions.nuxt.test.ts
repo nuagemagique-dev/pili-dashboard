@@ -9,9 +9,11 @@ import { createPinia, setActivePinia } from 'pinia'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import type { Order, OrderStatus, OrderType } from '~/types'
 import { useOrdersStore } from '~/stores/orders'
+import { orderDocument } from '~/utils/hubrise'
 import { setFlags } from '../support/flags'
 import { mountComposable } from '../helpers/mountComposable'
 import { makeOrder } from '../fixtures/dashboard'
+import { makeStatus } from '../fixtures/hubrise'
 
 const gqlFetch = vi.hoisted(() => vi.fn())
 const toast = vi.hoisted(() => ({ add: vi.fn() }))
@@ -149,6 +151,14 @@ describe('status helpers', () => {
       expect(ORDER_BY_ID_QUERY).toMatch(new RegExp(`\\b${field}\\b`, 'u'))
     }
     expect(ORDER_BY_ID_QUERY).toMatch(/query \(\$id: ID!\)/u)
+  })
+
+  it('asks for the HubRise state, which orderDocument takes out for a server without HubRise', () => {
+    expect(ORDER_BY_ID_QUERY).toContain('hubrise {')
+    expect(orderDocument(ORDER_BY_ID_QUERY, makeStatus())).toBe(ORDER_BY_ID_QUERY)
+    const plain = orderDocument(ORDER_BY_ID_QUERY, makeStatus({ available: false }))
+    expect(plain).not.toContain('hubrise')
+    expect(plain).toContain('payment')
   })
 })
 

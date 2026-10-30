@@ -74,7 +74,18 @@
     "itemsCount": "artikelen",
     "addShort": "Toevoegen",
     "piecesShort": "st.",
-    "lunchOnly": "Lunch (ma-vr)"
+    "lunchOnly": "Lunch (ma-vr)",
+    "hubrise": {
+      "managed": "Beheerd door HubRise",
+      "managedHint": "Sommige velden komen van HubRise en zijn vergrendeld.",
+      "published": "Gepubliceerd",
+      "pending": "Te publiceren",
+      "notPublished": "Niet gepubliceerd",
+      "ref": "HubRise-ref.: {ref}",
+      "publishedAt": "Gepubliceerd op {time}",
+      "neverPublished": "Nog niet gepubliceerd",
+      "publishNow": "Publicatie openen"
+    }
   },
   "orders": {
     "subtitle": "Beheer uw bestellingen in realtime",
@@ -212,7 +223,57 @@
     "articles": "{count} artikel | {count} artikelen",
     "cancelOrder": "Bestelling annuleren",
     "markPaid": "Markeer als betaald",
-    "estimateSaved": "Schatting opgeslagen"
+    "estimateSaved": "Schatting opgeslagen",
+    "hubrise": {
+      "title": "HubRise",
+      "orderId": "HubRise-bestelling",
+      "pushedAt": "Verstuurd op",
+      "remoteStatus": "HubRise-status",
+      "remoteTotal": "HubRise-totaal",
+      "needsAttention": "Aandacht nodig",
+      "cancelAndRefund": "Annuleren en terugbetalen",
+      "push": {
+        "pending": "HubRise: in afwachting",
+        "sent": "HubRise: verstuurd",
+        "parked": "HubRise: geblokkeerd",
+        "skipped": "HubRise: overgeslagen",
+        "unknown": "HubRise"
+      },
+      "attention": {
+        "unlinkedItem": {
+          "title": "Niet-gekoppeld item",
+          "body": "Een artikel van de bestelling is niet gekoppeld aan een HubRise-product. Koppel het en probeer opnieuw."
+        },
+        "totalMismatch": {
+          "title": "Afwijkend totaal",
+          "body": "HubRise berekende een ander totaal dan wij. Controleer de bestelling voordat u verdergaat."
+        },
+        "notAccepted": {
+          "title": "Bestelling niet geaccepteerd",
+          "body": "HubRise heeft de bestelling niet geaccepteerd. Zie de wachtrij voor details."
+        },
+        "statusConflict": {
+          "title": "Statusconflict",
+          "body": "De status in HubRise verschilt van de onze. Controleer welke juist is."
+        },
+        "deliveryFailed": {
+          "title": "Verzending mislukt",
+          "body": "De bestelling kon niet naar HubRise worden verstuurd. Probeer opnieuw vanuit de wachtrij."
+        },
+        "remoteCancelFailed": {
+          "title": "Annulering in HubRise mislukt",
+          "body": "De annulering kon niet naar HubRise worden doorgegeven. Annuleer ook in HubRise."
+        },
+        "remoteCancelledPaid": {
+          "title": "Geannuleerd in HubRise, al betaald",
+          "body": "De bestelling is in HubRise geannuleerd maar al betaald. Annuleer ze hier om de klant terug te betalen."
+        },
+        "unknown": {
+          "title": "Actie vereist",
+          "body": "Deze bestelling vraagt een controle in HubRise."
+        }
+      }
+    }
   },
   "orderHistory": {
     "title": "Bestelgeschiedenis",
@@ -344,7 +405,8 @@
     "settings": "Instellingen",
     "logout": "Uitloggen",
     "more": "Meer",
-    "assistant": "Assistent"
+    "assistant": "Assistent",
+    "hubrise": "HubRise"
   },
   "settings": {
     "security": {
@@ -544,6 +606,322 @@
       "unavailable": "De assistent-service antwoordt momenteel niet. Probeer het later opnieuw.",
       "limitReached": "Alle plaatsen zijn bezet, verwijder eerst een account.",
       "notFound": "Dit account of deze link bestaat niet meer, ververs de pagina."
+    }
+  },
+  "hubrise": {
+    "title": "HubRise",
+    "description": "Het dashboard is de enige bron van het menu. HubRise ontvangt het en geeft het door aan de kassa.",
+    "loading": "HubRise laden...",
+    "loadFailed": "De HubRise-status kon niet worden gelezen.",
+    "notAvailable": "HubRise is niet geconfigureerd op deze server.",
+    "attention": "{count} bestelling vraagt aandacht | {count} bestellingen vragen aandacht",
+    "status": {
+      "notConnected": "Niet verbonden",
+      "enabled": "Actief",
+      "paused": "Gepauzeerd"
+    },
+    "actions": {
+      "reconnect": "Opnieuw verbinden",
+      "forgetLinks": "Koppelingen vergeten",
+      "reviewImport": "Import controleren",
+      "acknowledge": "Begrepen",
+      "preview": "Publicatie bekijken",
+      "import": "Importeren"
+    },
+    "banners": {
+      "authError": "HubRise weigert de toegang sinds {since}. Verbind het account opnieuw.",
+      "relinkRequired": "De productkoppelingen horen bij een andere catalogus. Vergeet ze om opnieuw te beginnen.",
+      "reconnectForWrite": "De verbinding kan de catalogus niet schrijven. Verbind HubRise opnieuw om die toestemming te geven.",
+      "accountCatalog": "Deze catalogus wordt op accountniveau gedeeld in HubRise: hij kan hier niet worden gepubliceerd.",
+      "pendingReview": "Een import wacht op uw goedkeuring.",
+      "externalChange": "De catalogus is op {at} in HubRise gewijzigd. De volgende publicatie overschrijft die wijzigingen.",
+      "removalsConfirm": "Deze publicatie verwijdert items in HubRise. Een getypte bevestiging is vereist.",
+      "updateAvailable": "De HubRise-catalogus is gewijzigd. U kunt hem importeren."
+    },
+    "errors": {
+      "generic": "Er is een HubRise-fout opgetreden.",
+      "notConfigured": "HubRise is niet geconfigureerd op deze server.",
+      "notConnected": "Er is geen HubRise-account verbonden.",
+      "notEnabled": "De HubRise-integratie is gepauzeerd. Schakel ze eerst in.",
+      "relinkRequired": "De koppelingen horen bij een andere catalogus. Vergeet ze eerst.",
+      "previewRequired": "Toon eerst het voorbeeld voordat u toepast.",
+      "retireConfirmRequired": "Bevestig het uitfaseren van producten voordat u importeert.",
+      "emptyCatalog": "De HubRise-catalogus is leeg.",
+      "busy": "Er loopt al een synchronisatie. Probeer het zo opnieuw.",
+      "skuLinked": "Dit product is al gekoppeld aan een ander HubRise-item.",
+      "managed": "Dit veld wordt door HubRise beheerd en kan hier niet worden gewijzigd.",
+      "upstream": "HubRise antwoordde met een fout ({status}).",
+      "publishMode": "De publicatiemodus is actief: importeren is niet beschikbaar.",
+      "directionConflict": "De richting van de catalogus is intussen gewijzigd. Laad de pagina opnieuw.",
+      "reconnectRequired": "Verbind HubRise opnieuw om schrijftoegang tot de catalogus te geven.",
+      "accountCatalog": "Deze catalogus wordt op accountniveau gedeeld: hij kan niet worden gepubliceerd.",
+      "notPublishMode": "De publicatiemodus is niet actief.",
+      "previewStale": "Het menu is sinds het voorbeeld gewijzigd. Het voorbeeld is herladen, controleer het.",
+      "publishConfirmRequired": "Deze publicatie verwijdert items: bevestig ze uitdrukkelijk.",
+      "publishBlocked": "De publicatie is geblokkeerd: los eerst de gemelde punten op.",
+      "publishPendingChanges": "Menuwijzigingen worden nog verwerkt. Probeer het zo opnieuw.",
+      "rateLimited": "HubRise beperkt het aantal verzoeken. Probeer het over {seconds} s opnieuw.",
+      "emptyMenu": "Het menu is leeg: er valt niets te publiceren."
+    },
+    "publish": {
+      "errors": {
+        "writeScopeMissing": "De HubRise-verbinding kan de catalogus niet schrijven. Verbind opnieuw.",
+        "removalsNeedConfirm": "De publicatie zou veel items in HubRise verwijderen en staat in de wacht. Bekijk het voorbeeld en bevestig.",
+        "accountCatalog": "De catalogus wordt op HubRise-accountniveau gedeeld: publiceren is niet mogelijk.",
+        "catalogNotFound": "De HubRise-catalogus is niet gevonden. Controleer de verbinding. {detail}",
+        "rejected": "HubRise heeft de laatste publicatie geweigerd. {detail}",
+        "invalidMenu": "Het menu bevat fouten die publiceren verhinderen. {detail}",
+        "unavailable": "HubRise is niet beschikbaar, automatische nieuwe poging. {detail}",
+        "auth": "HubRise weigerde de toegang. Verbind het account opnieuw."
+      },
+      "intro": "Elke menuwijziging wordt naar de HubRise-catalogus gepubliceerd. De kassa leest die catalogus.",
+      "statusTitle": "Publicatie",
+      "phase": {
+        "awaitingFirst": "Eerste publicatie nog te doen",
+        "paused": "Gepauzeerd",
+        "publishing": "Bezig met publiceren",
+        "pending": "Wijzigingen in afwachting",
+        "upToDate": "Up-to-date"
+      },
+      "nextIn": "Volgende publicatie over {time}",
+      "nextUnknown": "Volgende publicatie binnenkort",
+      "awaitingFirst": "Toon het voorbeeld en bevestig om het menu voor het eerst te publiceren.",
+      "lastPublished": "Laatst gepubliceerd",
+      "never": "Nooit",
+      "products": "Producten",
+      "productsCount": "{published} gepubliceerd, {pending} in afwachting",
+      "previewButton": "Voorbeeld en publicatie",
+      "queued": "Publicatie in de wachtrij",
+      "published": "Menu gepubliceerd"
+    },
+    "direction": {
+      "title": "Richting van de catalogus",
+      "intro": "Kies wie de bron van het menu is. Het dashboard publiceert naar HubRise, of HubRise wordt geïmporteerd.",
+      "current": "Huidig",
+      "dialogTitle": "De catalogusrichting wijzigen",
+      "confirmButton": "Wijziging bevestigen",
+      "changed": "Catalogusrichting gewijzigd",
+      "acknowledgeOverwrite": "Ik begrijp dat de HubRise-catalogus wordt overschreven.",
+      "options": {
+        "NONE": {
+          "title": "Geen",
+          "description": "Het menu wordt niet geïmporteerd of gepubliceerd."
+        },
+        "IMPORT": {
+          "title": "Importeren uit HubRise",
+          "description": "HubRise is de bron van het menu en het dashboard ontvangt het."
+        },
+        "PUBLISH": {
+          "title": "Publiceren naar HubRise",
+          "description": "Het dashboard is de bron van het menu en HubRise ontvangt het (aanbevolen)."
+        }
+      },
+      "blocked": {
+        "reconnectRequired": "Verbind HubRise opnieuw om te kunnen publiceren.",
+        "notConnected": "Verbind eerst een HubRise-account."
+      },
+      "confirm": {
+        "noneToImport": "Het menu wordt uit HubRise geïmporteerd. Vóór elke wijziging wordt een voorbeeld getoond.",
+        "noneToPublish": "Het dashboard wordt de bron van het menu en publiceert het naar HubRise.",
+        "importToNone": "Importeren uit HubRise stopt. Bestaande producten blijven behouden.",
+        "importToPublish": "Het dashboard wordt de bron van het menu: wijzigingen in HubRise worden overschreven.",
+        "publishToNone": "Publiceren naar HubRise stopt. De HubRise-catalogus blijft zoals hij is.",
+        "publishToImport": "HubRise wordt opnieuw de bron van het menu. Vóór elke wijziging wordt een voorbeeld getoond."
+      }
+    },
+    "import": {
+      "intro": {
+        "NONE": "Er is geen catalogussynchronisatie actief.",
+        "IMPORT": "Importeer de HubRise-catalogus in het menu. Een voorbeeld gaat elke wijziging vooraf.",
+        "PUBLISH": "In de publicatiemodus dient importeren enkel om bestaande producten te koppelen."
+      },
+      "modes": {
+        "LINK_ONLY": "Alleen koppelen",
+        "FULL": "Volledige import"
+      },
+      "modeHint": {
+        "LINK_ONLY": "Koppelt bestaande producten aan HubRise en wijzigt verder niets.",
+        "FULL": "Maakt producten aan, werkt ze bij en faseert ze uit volgens HubRise."
+      },
+      "preview": "Voorbeeld van de import",
+      "apply": {
+        "LINK_ONLY": "Koppelingen toepassen",
+        "FULL": "Import toepassen"
+      },
+      "enableFirst": "Schakel eerst de HubRise-integratie in.",
+      "loading": "Voorbeeld berekenen...",
+      "linked": "{count} producten gekoppeld",
+      "unchanged": "{count} ongewijzigd",
+      "retiring": "{count} uit te faseren",
+      "noChanges": "Geen wijzigingen",
+      "conflicts": "Conflicten",
+      "warnings": "Waarschuwingen",
+      "actions": {
+        "RETIRE": "Uitgefaseerd ({count})",
+        "UPDATE": "Bijgewerkt ({count})",
+        "CREATE": "Aangemaakt ({count})",
+        "LINK": "Gekoppeld ({count})",
+        "REVIVE": "Heractiveerd ({count})"
+      },
+      "confirmRetire": "Ik bevestig het uitfaseren van {count} producten",
+      "applied": "Import toegepast",
+      "waitingReview": "Import wacht op goedkeuring",
+      "notApplied": "De import is niet toegepast",
+      "failedBatches": "Mislukte batches: {batches}"
+    },
+    "preview": {
+      "title": "Voorbeeld van de publicatie",
+      "description": "Dit verandert er in de HubRise-catalogus.",
+      "loading": "Voorbeeld berekenen...",
+      "retryIn": "Probeer opnieuw over {time}",
+      "retry": "Opnieuw proberen",
+      "firstPublish": "Eerste publicatie: het hele menu wordt naar HubRise verstuurd.",
+      "counts": {
+        "added": "Toegevoegd",
+        "updated": "Gewijzigd",
+        "removed": "Verwijderd",
+        "unchanged": "Ongewijzigd",
+        "foreign": "Vreemd"
+      },
+      "rowCounts": "+{added} ~{updated} -{removed}",
+      "nothingToDo": "Niets te publiceren: HubRise is al up-to-date.",
+      "actions": {
+        "REMOVE": "Verwijderd ({count})",
+        "UPDATE": "Gewijzigd ({count})",
+        "ADD": "Toegevoegd ({count})"
+      },
+      "truncated": "De lijst is ingekort: enkel de eerste wijzigingen worden getoond.",
+      "foreignTitle": "{count} items die niet in het menu staan",
+      "foreignHint": "Deze items bestaan in HubRise maar niet in het menu. Standaard blijven ze behouden.",
+      "removeForeign": "Deze {count} items uit HubRise verwijderen",
+      "preserved": "Behouden in HubRise",
+      "warnings": "Waarschuwingen",
+      "blockers": "Blokkerende punten",
+      "typedPrompt": "Typ dat aantal om het verwijderen van {count} items te bevestigen.",
+      "typedLabel": "Bevestiging",
+      "confirm": "Publiceren",
+      "confirmFirst": "Het menu publiceren"
+    },
+    "entities": {
+      "CATEGORY": "Categorie",
+      "PRODUCT": "Product",
+      "CHOICE_GROUP": "Keuzegroep",
+      "CHOICE": "Keuze"
+    },
+    "connection": {
+      "title": "Verbinding",
+      "account": "Account",
+      "location": "Locatie",
+      "catalog": "Catalogus",
+      "customerList": "Klantenlijst",
+      "lastEvent": "Laatste gebeurtenis",
+      "lastCatalogSync": "Laatste catalogussynchronisatie",
+      "disconnect": "Verbinding verbreken",
+      "disconnectHint": "Stopt de uitwisseling met HubRise. Productkoppelingen blijven behouden.",
+      "forgetLinks": "Productkoppelingen vergeten",
+      "disconnectConfirm": "Ja, verbreken",
+      "disconnected": "HubRise losgekoppeld",
+      "linksForgotten": "{count} koppelingen vergeten",
+      "notConnected": "Er is geen HubRise-account verbonden.",
+      "connect": "HubRise verbinden"
+    },
+    "features": {
+      "title": "Functies",
+      "description": "Schakel de uitwisselingen stap voor stap in.",
+      "enabled": "Integratie actief",
+      "enabledHint": "Schakel uit om alle uitwisselingen te pauzeren.",
+      "enabledRelink": "Vergeet eerst de productkoppelingen om de integratie in te schakelen.",
+      "pausedHint": "De integratie is gepauzeerd: er wordt niets uitgewisseld.",
+      "syncInventoryNow": "Voorraad nu synchroniseren",
+      "inventorySynced": "Voorraad gesynchroniseerd ({count})",
+      "unlinked": "{count} niet-gekoppelde producten"
+    },
+    "toggles": {
+      "pushOrders": "Bestellingen versturen",
+      "syncStatus": "Statussen synchroniseren",
+      "syncCustomers": "Klanten synchroniseren",
+      "syncInventory": "Voorraad synchroniseren",
+      "autoRefundOnCancel": "Automatisch terugbetalen bij annulering",
+      "catalogAutoImport": "Catalogus automatisch importeren",
+      "importImages": "Afbeeldingen importeren",
+      "publishImages": "Afbeeldingen publiceren"
+    },
+    "hints": {
+      "pushOrders": "Nieuwe bestellingen worden naar HubRise gestuurd.",
+      "pushOrdersUnlinked": "{count} producten zijn niet gekoppeld: bestellingen die ze bevatten wachten op controle.",
+      "syncStatus": "Bestelstatussen blijven gelijk met HubRise.",
+      "syncCustomers": "Klanten worden naar de HubRise-klantenlijst gestuurd.",
+      "syncInventory": "Uitverkochte producten worden met HubRise gedeeld.",
+      "autoRefundOnCancel": "Een in HubRise geannuleerde bestelling wordt zonder handeling terugbetaald.",
+      "catalogAutoImport": "Wijzigingen in de HubRise-catalogus worden zonder controle geïmporteerd.",
+      "importImages": "Afbeeldingen van de HubRise-catalogus worden overgenomen.",
+      "publishImages": "Productafbeeldingen worden met het menu gepubliceerd."
+    },
+    "catalog": {
+      "title": "Catalogus"
+    },
+    "platformPrices": {
+      "title": "Prijzen per platform",
+      "description": "Elk platform leest zijn eigen variant in HubRise: de menuprijzen plus een toeslag, opties inbegrepen. Kies deze variant in de bridge van het platform.",
+      "name": "Platform",
+      "variantRef": "Variantreferentie",
+      "markupPercent": "Toeslag (%)",
+      "roundToCents": "Afronden naar boven op een veelvoud van (cent)",
+      "add": "Platform toevoegen",
+      "remove": "Verwijderen"
+    },
+    "options": {
+      "title": "Opties",
+      "description": "Geavanceerde instellingen voor de koppeling met HubRise.",
+      "catalogLanguage": "Taal van de catalogus",
+      "variantRef": "Variantreferentie",
+      "channelName": "Kanaalnaam",
+      "deliveryChargeRef": "Referentie leveringskosten",
+      "paymentFeeChargeRef": "Referentie betaalkosten",
+      "optional": "Optioneel",
+      "languages": {
+        "fr": "Frans",
+        "en": "Engels",
+        "nl": "Nederlands",
+        "zh": "Chinees"
+      }
+    },
+    "outbox": {
+      "title": "Uitgaande wachtrij",
+      "summary": "{pending} in afwachting, {parked} geblokkeerd",
+      "states": {
+        "PARKED": "Geblokkeerd",
+        "PENDING": "In afwachting",
+        "SENDING": "Verzenden",
+        "SENT": "Verzonden",
+        "SKIPPED": "Overgeslagen"
+      },
+      "kinds": {
+        "ORDER_CREATE": "Nieuwe bestelling",
+        "ORDER_STATUS": "Bestelstatus",
+        "INVENTORY": "Voorraad",
+        "CUSTOMER": "Klant",
+        "CUSTOMER_ANONYMISE": "Klant anonimiseren"
+      },
+      "retryAll": "Alles opnieuw proberen",
+      "retry": "Opnieuw proberen",
+      "retried": "{count} verzendingen opnieuw gestart",
+      "empty": "Niets geblokkeerd of in afwachting.",
+      "attempts": "{count} pogingen, aangemaakt op {time}",
+      "openOrder": "Bestelling openen"
+    },
+    "oauth": {
+      "connected": "HubRise verbonden",
+      "relink_required": "Verbonden, maar de productkoppelingen horen bij een andere catalogus.",
+      "denied": "Toegang tot HubRise werd geweigerd.",
+      "invalid_state": "Het verbindingsverzoek is verlopen. Begin opnieuw.",
+      "authorization_failed": "HubRise-autorisatie mislukt.",
+      "error": "Verbinden met HubRise is mislukt."
+    },
+    "layoutBanner": {
+      "authError": "HubRise weigerde de toegang: de uitwisselingen zijn gestopt.",
+      "parked": "{count} verzending naar HubRise is geblokkeerd | {count} verzendingen naar HubRise zijn geblokkeerd",
+      "action": "Openen"
     }
   }
 }

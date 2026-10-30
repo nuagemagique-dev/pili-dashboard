@@ -8,6 +8,8 @@ import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { ref } from 'vue'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import { makeProduct } from '../fixtures/dashboard'
+import { bodySelector, bodyText } from '../helpers/dom'
+import { gqlFailure } from '../fixtures/hubrise'
 import { settle } from '../helpers/settle'
 
 const h = vi.hoisted(() => ({
@@ -165,5 +167,107 @@ describe('ProductDialog: choice groups', () => {
     const deletes = sentMutations().filter((m) => m.name === 'deleteProductChoice')
     expect(deletes).toEqual([{ name: 'deleteProductChoice', variables: { id: 'c-rice' } }])
     expect(wrapper.emitted('update')).toHaveLength(1)
+  })
+})
+
+describe('ProductDialog: HubRise', () => {
+  const withHubrise = (extra: Record<string, unknown>) =>
+    ({ ...pokeBowl(), code: 'R12', ...extra }) as never
+
+  const mountWith = async (extra: Record<string, unknown>) => {
+    const Dialog = (await import('~/components/ProductDialog.vue')).default
+    const wrapper = await mountSuspended(Dialog, {
+      props: { product: withHubrise(extra), mode: 'edit' },
+    })
+    await settle()
+    return wrapper
+  }
+
+  /** The inputs of the dialog that are disabled, by their placeholder. */
+  const disabledFields = () =>
+    [...document.body.querySelectorAll<HTMLInputElement>('input')]
+      .filter((input) => input.disabled)
+      .map((input) => input.placeholder)
+
+  beforeEach(() => {
+    document.body.innerHTML = ''
+  })
+
+  it('shows nothing about HubRise where the server has none', async () => {
+    await mountWith({})
+    expect(bodySelector('[data-testid="product-hubrise-managed"]')).toBeNull()
+    expect(bodySelector('[data-testid="product-hubrise-publish"]')).toBeNull()
+    expect(disabledFields()).toEqual([])
+  })
+
+  it('marks a product HubRise owns and locks the fields the server lists', async () => {
+    await mountWith({
+      hubriseManaged: true,
+      hubriseLockedFields: ['price', 'category', 'vatCategory', 'code', 'choiceGroups'],
+    })
+    expect(bodySelector('[data-testid="product-hubrise-managed"]')!.textContent).toContain(
+      'products.hubrise.managed',
+    )
+    const disabled = disabledFields()
+    for (const placeholder of ['products.code', 'products.priceEuro', '1', '0', '0.00']) {
+      expect(disabled).toContain(placeholder)
+    }
+    // The names stay editable: the catalog language is the shop's to correct.
+    expect(disabled).not.toContain('common.name')
+    expect(
+      [...document.body.querySelectorAll('button')]
+        .filter((b) => b.disabled)
+        .map((b) => b.textContent.trim()),
+    ).toEqual(expect.arrayContaining(['products.choices.groupAdd', 'products.choices.add']))
+  })
+
+  it('locks only the fields the server lists', async () => {
+    await mountWith({ hubriseManaged: true, hubriseLockedFields: ['price'] })
+    expect(disabledFields()).toEqual(['products.priceEuro'])
+  })
+
+  it('leaves everything editable for a product that is not managed', async () => {
+    await mountWith({ hubriseManaged: false, hubriseLockedFields: ['price'] })
+    expect(bodySelector('[data-testid="product-hubrise-managed"]')).toBeNull()
+    expect(disabledFields()).toEqual([])
+  })
+
+  it.each([
+    ['PUBLISHED', 'products.hubrise.published'],
+    ['PENDING', 'products.hubrise.pending'],
+    ['NOT_PUBLISHED', 'products.hubrise.notPublished'],
+  ])('shows where the publication stands (%s)', async (state, key) => {
+    await mountWith({
+      hubrisePublish: { state, publishedAt: '2026-10-24T10:00:00Z', ref: 'R12' },
+    })
+    const block = bodySelector('[data-testid="product-hubrise-publish"]')!
+    expect(block.textContent).toContain(key)
+    expect(block.textContent).toContain('products.hubrise.ref{"ref":"R12"}')
+    expect(block.textContent).toMatch(/products\.hubrise\.publishedAt\{"time":"[^"]*12:00/u)
+    expect(block.querySelector('a')!.getAttribute('href')).toContain('/hubrise')
+    expect(disabledFields()).toEqual([])
+  })
+
+  it('says a product was never published, and shows no SKU yet', async () => {
+    await mountWith({ hubrisePublish: { state: 'NOT_PUBLISHED', publishedAt: null, ref: null } })
+    const block = bodySelector('[data-testid="product-hubrise-publish"]')!
+    expect(block.textContent).toContain('products.hubrise.neverPublished')
+    expect(block.textContent).not.toContain('products.hubrise.ref')
+  })
+
+  it('shows nothing when the publication is unknown (null outside PUBLISH)', async () => {
+    await mountWith({ hubrisePublish: null })
+    expect(bodySelector('[data-testid="product-hubrise-publish"]')).toBeNull()
+  })
+
+  it('tells that HubRise owns the option groups when saving them is refused', async () => {
+    h.gqlFetch.mockRejectedValue(gqlFailure('HUBRISE_MANAGED'))
+    const wrapper = await mountWith({})
+    const vm = wrapper.vm as unknown as DialogVm
+    vm.removeChoice(0, 0)
+    await vm.saveChanges()
+    expect(vm.validationErrors).toEqual(['hubrise.errors.managed'])
+    expect(wrapper.emitted('update')).toBeUndefined()
+    expect(bodyText()).toContain('hubrise.errors.managed')
   })
 })
