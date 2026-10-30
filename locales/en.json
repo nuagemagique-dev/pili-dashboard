@@ -871,6 +871,16 @@
     "catalog": {
       "title": "Catalog"
     },
+    "platformPrices": {
+      "title": "Prices per platform",
+      "description": "Each platform reads its own variant in HubRise: the menu prices plus a markup, options included. Choose this variant in the platform's bridge.",
+      "name": "Platform",
+      "variantRef": "Variant reference",
+      "markupPercent": "Markup (%)",
+      "roundToCents": "Round up to a multiple of (cents)",
+      "add": "Add a platform",
+      "remove": "Remove"
+    },
     "options": {
       "title": "Options",
       "description": "Advanced settings of the match with HubRise.",

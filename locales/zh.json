@@ -871,6 +871,16 @@
     "catalog": {
       "title": "目录"
     },
+    "platformPrices": {
+      "title": "各平台价格",
+      "description": "每个平台在 HubRise 中读取自己的规格：菜单价格加上加价，包括选项。请在该平台的 bridge 中选择此规格。",
+      "name": "平台",
+      "variantRef": "规格编号",
+      "markupPercent": "加价 (%)",
+      "roundToCents": "向上取整到倍数 (分)",
+      "add": "添加平台",
+      "remove": "移除"
+    },
     "options": {
       "title": "选项",
       "description": "与 HubRise 对应关系的高级设置。",

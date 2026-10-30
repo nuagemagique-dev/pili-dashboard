@@ -73,6 +73,7 @@ export function makeStatus(overrides: StatusOverrides = {}): HubriseStatus {
     channelName: null,
     deliveryChargeRef: null,
     paymentFeeChargeRef: null,
+    platformPrices: [],
     importImages: false,
     lastCatalogSyncAt: null,
     lastEventAt: null,

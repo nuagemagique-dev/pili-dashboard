@@ -208,6 +208,12 @@
                 :status="status"
                 @reconnect="connect"
               />
+              <PlatformPrices
+                v-if="status.catalogDirection === 'PUBLISH'"
+                :stored="status.platformPrices"
+                :busy="settings.busy.value === 'settings'"
+                @save="(platformPrices) => update({ platformPrices })"
+              />
               <div ref="importAnchor">
                 <ImportPanel :status="status" />
               </div>
@@ -374,6 +380,7 @@ import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
 import CatalogDirection from '~/components/hubrise/CatalogDirection.vue'
 import HubriseBanners from '~/components/hubrise/HubriseBanners.vue'
 import ImportPanel from '~/components/hubrise/ImportPanel.vue'
+import PlatformPrices from '~/components/hubrise/PlatformPrices.vue'
 import PublishPanel from '~/components/hubrise/PublishPanel.vue'
 import SettingsSection from '~/components/SettingsSection.vue'
 import {

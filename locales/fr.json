@@ -871,6 +871,16 @@
     "catalog": {
       "title": "Catalogue"
     },
+    "platformPrices": {
+      "title": "Prix par plateforme",
+      "description": "Chaque plateforme lit sa variante dans HubRise : les prix du menu plus une majoration, options comprises. Choisissez cette variante dans le bridge de la plateforme.",
+      "name": "Plateforme",
+      "variantRef": "Référence de variante",
+      "markupPercent": "Majoration (%)",
+      "roundToCents": "Arrondi au multiple supérieur (cents)",
+      "add": "Ajouter une plateforme",
+      "remove": "Retirer"
+    },
     "options": {
       "title": "Options",
       "description": "Réglages avancés de la correspondance avec HubRise.",

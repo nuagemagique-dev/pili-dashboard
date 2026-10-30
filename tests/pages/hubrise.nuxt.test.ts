@@ -381,6 +381,73 @@ describe('options', () => {
   })
 })
 
+describe('platform prices', () => {
+  const uber = { variantRef: 'uber', name: 'Uber Eats', markupPercent: 30, roundToCents: 10 }
+  const publishing = (platformPrices: (typeof uber)[]) =>
+    makeStatus({ catalogDirection: 'PUBLISH', platformPrices })
+  const section = async (wrapper: Awaited<ReturnType<typeof mountPage>>) => {
+    const vm = wrapper.vm as unknown as { openSections: Record<string, boolean> }
+    vm.openSections.catalog = true
+    await settle()
+    return wrapper.find('[data-testid="hubrise-platform-prices"]')
+  }
+
+  it('is only offered while the dashboard owns the menu', async () => {
+    const wrapper = await mountPage()
+    expect((await section(wrapper)).exists()).toBe(false)
+  })
+
+  it('adds a platform and saves the whole list', async () => {
+    api.answer('HubriseStatus', { hubriseStatus: publishing([]) })
+    api.answer('UpdateHubriseSettings', { updateHubriseSettings: publishing([uber]) })
+    const wrapper = await mountPage()
+    const prices = await section(wrapper)
+    expect(prices.html()).not.toContain('common.save')
+    await buttonByText(wrapper, 'hubrise.platformPrices.add')!.trigger('click')
+    const inputs = prices.findAll('input')
+    await inputs[0]!.setValue(' Uber Eats ')
+    await inputs[1]!.setValue('uber')
+    await inputs[2]!.setValue('30')
+    await prices
+      .findAll('button')
+      .find((b) => b.text() === 'common.save')!
+      .trigger('click')
+    await settle()
+    expect(api.calls('UpdateHubriseSettings')).toEqual([{ input: { platformPrices: [uber] } }])
+  })
+
+  it('removes a platform', async () => {
+    api.answer('HubriseStatus', { hubriseStatus: publishing([uber]) })
+    api.answer('UpdateHubriseSettings', { updateHubriseSettings: publishing([]) })
+    const wrapper = await mountPage()
+    const prices = await section(wrapper)
+    expect(prices.findAll('input')[0]!.element.value).toBe('Uber Eats')
+    await buttonByText(wrapper, 'hubrise.platformPrices.remove')!.trigger('click')
+    await prices
+      .findAll('button')
+      .find((b) => b.text() === 'common.save')!
+      .trigger('click')
+    await settle()
+    expect(api.calls('UpdateHubriseSettings')).toEqual([{ input: { platformPrices: [] } }])
+  })
+
+  it('keeps what the admin typed when the status refreshes, and follows the server otherwise', async () => {
+    api.answer('HubriseStatus', { hubriseStatus: publishing([uber]) })
+    const wrapper = await mountPage()
+    const prices = await section(wrapper)
+    const { status } = await import('../../composables/useHubriseStatus').then((m) => ({
+      status: m.useHubriseStatusState().status,
+    }))
+    status.value = publishing([{ ...uber, markupPercent: 25 }])
+    await settle()
+    expect(prices.findAll('input')[2]!.element.value).toBe('25')
+    await prices.findAll('input')[0]!.setValue('Draft')
+    status.value = publishing([{ ...uber, markupPercent: 20 }])
+    await settle()
+    expect(prices.findAll('input')[0]!.element.value).toBe('Draft')
+  })
+})
+
 describe('outbox', () => {
   const parked = makeOutboxItem()
   const pending = makeOutboxItem({

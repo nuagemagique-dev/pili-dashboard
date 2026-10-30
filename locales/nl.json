@@ -871,6 +871,16 @@
     "catalog": {
       "title": "Catalogus"
     },
+    "platformPrices": {
+      "title": "Prijzen per platform",
+      "description": "Elk platform leest zijn eigen variant in HubRise: de menuprijzen plus een toeslag, opties inbegrepen. Kies deze variant in de bridge van het platform.",
+      "name": "Platform",
+      "variantRef": "Variantreferentie",
+      "markupPercent": "Toeslag (%)",
+      "roundToCents": "Afronden naar boven op een veelvoud van (cent)",
+      "add": "Platform toevoegen",
+      "remove": "Verwijderen"
+    },
     "options": {
       "title": "Opties",
       "description": "Geavanceerde instellingen voor de koppeling met HubRise.",

@@ -43,6 +43,9 @@ import {
   statusBanners,
   toggleRows,
   typedConfirmation,
+  cleanPlatformPrices,
+  newPlatformPrice,
+  platformPricesChanged,
 } from '~/utils/hubrise'
 import {
   gqlFailure,
@@ -754,5 +757,39 @@ describe('order query fields', () => {
     ]) {
       expect(HUBRISE_ORDER_FIELDS).toContain(field)
     }
+  })
+})
+
+describe('platform prices', () => {
+  const uber = {
+    variantRef: 'uber',
+    name: 'Uber Eats',
+    markupPercent: 30,
+    roundToCents: 10,
+  }
+
+  it('starts a row with a rounding of 10 cents', () => {
+    expect(newPlatformPrice()).toEqual({
+      variantRef: '',
+      name: '',
+      markupPercent: 0,
+      roundToCents: 10,
+    })
+  })
+
+  it('sends only what the API knows, trimmed', () => {
+    const typed = {
+      ...uber,
+      variantRef: ' uber ',
+      name: ' Uber Eats ',
+      __typename: 'HubrisePlatformPrice',
+    }
+    expect(cleanPlatformPrices([typed])).toEqual([uber])
+  })
+
+  it('sees a change in any field, in the number of rows, not in the spaces', () => {
+    expect(platformPricesChanged([uber], [{ ...uber, name: ' Uber Eats ' }])).toBe(false)
+    expect(platformPricesChanged([uber], [{ ...uber, markupPercent: 25 }])).toBe(true)
+    expect(platformPricesChanged([uber], [])).toBe(true)
   })
 })

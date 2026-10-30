@@ -91,6 +91,7 @@ export interface HubriseStatus {
   channelName: string | null
   deliveryChargeRef: string | null
   paymentFeeChargeRef: string | null
+  platformPrices: HubrisePlatformPrice[]
   importImages: boolean
   lastCatalogSyncAt: string | null
   lastEventAt: string | null
@@ -133,7 +134,41 @@ export interface HubriseSettingsInput {
   channelName?: string
   deliveryChargeRef?: string
   paymentFeeChargeRef?: string
+  platformPrices?: HubrisePlatformPrice[]
 }
+
+/** A delivery platform's price list: a HubRise variant with the published prices plus a markup. */
+export interface HubrisePlatformPrice {
+  variantRef: string
+  name: string
+  markupPercent: number
+  /** The marked up price is rounded up to a multiple of this many cents. */
+  roundToCents: number
+}
+
+export const newPlatformPrice = (): HubrisePlatformPrice => ({
+  variantRef: '',
+  name: '',
+  markupPercent: 0,
+  roundToCents: 10,
+})
+
+/** The rows as the API takes them: only what it knows, the texts trimmed. */
+export const cleanPlatformPrices = (
+  rows: readonly HubrisePlatformPrice[],
+): HubrisePlatformPrice[] =>
+  rows.map((row) => ({
+    variantRef: row.variantRef.trim(),
+    name: row.name.trim(),
+    markupPercent: row.markupPercent,
+    roundToCents: row.roundToCents,
+  }))
+
+export const platformPricesChanged = (
+  stored: readonly HubrisePlatformPrice[],
+  rows: readonly HubrisePlatformPrice[],
+): boolean =>
+  JSON.stringify(cleanPlatformPrices(stored)) !== JSON.stringify(cleanPlatformPrices(rows))
 
 export interface HubriseCatalogChange {
   entity: HubriseCatalogEntity

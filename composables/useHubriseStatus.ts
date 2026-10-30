@@ -56,6 +56,12 @@ export const HUBRISE_STATUS_FIELDS = `
   channelName
   deliveryChargeRef
   paymentFeeChargeRef
+  platformPrices {
+    variantRef
+    name
+    markupPercent
+    roundToCents
+  }
   importImages
   lastCatalogSyncAt
   lastEventAt
