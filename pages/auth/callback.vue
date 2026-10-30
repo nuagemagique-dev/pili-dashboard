@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts" setup>
-import { definePageMeta, onMounted, ref, useRuntimeConfig } from '#imports'
+import { definePageMeta, onMounted, ref } from '#imports'
 import { useAuthCallback } from '~/composables/useAuthCallback'
 import { useI18n } from 'vue-i18n'
 import { useOidc } from '~/composables/useOidc'
@@ -25,10 +25,7 @@ definePageMeta({
   layout: false,
 })
 
-const config = useRuntimeConfig()
-const isCapacitor = config.public.appBuild === 'capacitor'
-
-const { handleCallback, exchangeCodeForTokens } = useOidc()
+const { handleCallback } = useOidc()
 const { processCallback } = useAuthCallback()
 const { t } = useI18n()
 const error = ref(false)
@@ -46,17 +43,7 @@ onMounted(async () => {
   if (callbackHandled) return
   callbackHandled = true
   try {
-    if (isCapacitor) {
-      // Capacitor: extract code from the URL and exchange via backend proxy.
-      // (oidc-client-ts's signinRedirectCallback validates a state cookie
-      // That doesn't survive the Session API + authorize-proxy round-trip.)
-      const url = new URL(window.location.href)
-      const code = url.searchParams.get('code')
-      if (!code) throw new Error('No authorization code in callback URL')
-      await exchangeCodeForTokens(code)
-    } else {
-      await handleCallback()
-    }
+    await handleCallback()
 
     const outcome = await processCallback()
     if (!outcome.ok) {

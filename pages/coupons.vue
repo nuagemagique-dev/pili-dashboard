@@ -451,8 +451,6 @@ import {
 } from '~/utils/coupons'
 import { computed, ref, watch } from 'vue'
 import { useGqlMutation, useGqlQuery, useGqlSubscription } from '#imports'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -518,7 +516,7 @@ const columns = computed(() => [
   { accessorKey: 'actions', header: '', enableSorting: false },
 ])
 
-const COUPONS_QUERY = gql`
+const COUPONS_QUERY = /* GraphQL */ `
   query {
     coupons {
       id
@@ -539,7 +537,7 @@ const COUPONS_QUERY = gql`
   }
 `
 
-const CREATE_COUPON_MUTATION = gql`
+const CREATE_COUPON_MUTATION = /* GraphQL */ `
   mutation ($input: CreateCouponInput!) {
     createCoupon(input: $input) {
       id
@@ -560,7 +558,7 @@ const CREATE_COUPON_MUTATION = gql`
   }
 `
 
-const UPDATE_COUPON_MUTATION = gql`
+const UPDATE_COUPON_MUTATION = /* GraphQL */ `
   mutation ($id: ID!, $input: UpdateCouponInput!) {
     updateCoupon(id: $id, input: $input) {
       id
@@ -581,7 +579,7 @@ const UPDATE_COUPON_MUTATION = gql`
   }
 `
 
-const TOGGLE_COUPON_MUTATION = gql`
+const TOGGLE_COUPON_MUTATION = /* GraphQL */ `
   mutation ($id: ID!, $input: UpdateCouponInput!) {
     updateCoupon(id: $id, input: $input) {
       id
@@ -591,7 +589,7 @@ const TOGGLE_COUPON_MUTATION = gql`
   }
 `
 
-const SUB_COUPON_UPDATED = gql`
+const SUB_COUPON_UPDATED = /* GraphQL */ `
   subscription CouponUpdated {
     couponUpdated {
       id
@@ -613,7 +611,7 @@ const SUB_COUPON_UPDATED = gql`
 `
 
 const { data: dataCoupons, pending } = await useGqlQuery<{ coupons: Coupon[] }>(
-  print(COUPONS_QUERY),
+  COUPONS_QUERY,
   {},
   { immediate: true, cache: true },
 )
@@ -751,9 +749,11 @@ const handleSubmit = async () => {
       const { mutate } = useGqlMutation<{ createCoupon: Coupon }>(CREATE_COUPON_MUTATION)
       const res = await mutate({ input })
 
+      // The couponUpdated push usually arrives before this answer and has already added the coupon: keep one row.
+      const others = (dataCoupons.value?.coupons ?? []).filter((c) => c.id !== res.createCoupon.id)
       dataCoupons.value = {
         ...dataCoupons.value,
-        coupons: [res.createCoupon, ...(dataCoupons.value?.coupons ?? [])],
+        coupons: [res.createCoupon, ...others],
       }
     }
 
@@ -767,9 +767,7 @@ const handleSubmit = async () => {
 }
 
 // Subscribe in setup so onScopeDispose ties to the component scope; in onMounted it leaks the WebSocket.
-const { data: liveCoupon } = useGqlSubscription<{ couponUpdated: Coupon }>(
-  print(SUB_COUPON_UPDATED),
-)
+const { data: liveCoupon } = useGqlSubscription<{ couponUpdated: Coupon }>(SUB_COUPON_UPDATED)
 watch(liveCoupon, (val) => {
   if (!val?.couponUpdated?.id || !dataCoupons.value?.coupons) return
   const idx = dataCoupons.value.coupons.findIndex((c) => c.id === val.couponUpdated.id)

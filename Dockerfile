@@ -1,4 +1,4 @@
-FROM node:24.21-slim AS builder
+FROM node:24.22-slim AS builder
 
 WORKDIR /usr/src/app
 
@@ -8,7 +8,7 @@ ARG S3_BUCKET_URL
 ARG GRAPHQL_WS_URL
 ARG ZITADEL_AUTHORITY
 ARG ZITADEL_CLIENT_ID
-# Restaurant name printed on receipts (white-label); defaults to Tokyo Sushi Bar.
+# Restaurant name shown in the app (white-label); defaults to Tokyo Sushi Bar.
 ARG RESTAURANT_NAME
 
 ENV DASHBOARD_BASE_URL=${DASHBOARD_BASE_URL} \
@@ -22,16 +22,21 @@ ENV DASHBOARD_BASE_URL=${DASHBOARD_BASE_URL} \
 # The image has no git; skip the Vite+ hook setup run by the `prepare` script.
 ENV VP_GIT_HOOKS=0
 
-COPY package*.json ./
+# Pin pnpm to the version package.json declares (packageManager + devEngines).
+# Installed with the image's own npm before any package.json is copied: that
+# npm would otherwise be judged by the project's devEngines.
+RUN npm install -g pnpm@12.15.0
 
-RUN npm ci --prefer-offline --no-audit
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
+
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
 # `nuxt generate` (vs `nuxt build`) ensures Nitro emits the SPA shell as a real
 # /index.html in .output/public/ rather than serving it from a virtual server
 # module at runtime, required for static file serving.
-RUN npm run generate
+RUN pnpm run generate
 
 # ---------- Runtime (Caddy) ----------
 FROM caddy:2-alpine

@@ -522,7 +522,6 @@ import type {
   UpdateProductRequest,
 } from '~/types'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import gql from 'graphql-tag'
 import { useCategoriesStore } from '~/stores/categories'
 import { splitEmptyChoiceGroups } from '~/utils/choiceGroups'
 import {
@@ -811,12 +810,12 @@ const saveChoices = async (productId: string) => {
   editedChoiceGroups.value = kept
   normalizeChoiceOrdering()
 
-  const DELETE_CHOICE = gql`
+  const DELETE_CHOICE = /* GraphQL */ `
     mutation ($id: ID!) {
       deleteProductChoice(id: $id)
     }
   `
-  const DELETE_GROUP = gql`
+  const DELETE_GROUP = /* GraphQL */ `
     mutation ($id: ID!) {
       deleteProductChoiceGroup(id: $id)
     }
@@ -833,7 +832,7 @@ const saveChoices = async (productId: string) => {
     removedChoiceGroupIds.shift()
   }
 
-  const CREATE_GROUP = gql`
+  const CREATE_GROUP = /* GraphQL */ `
     mutation ($input: CreateProductChoiceGroupInput!) {
       createProductChoiceGroup(input: $input) {
         id
@@ -849,7 +848,7 @@ const saveChoices = async (productId: string) => {
       }
     }
   `
-  const UPDATE_GROUP = gql`
+  const UPDATE_GROUP = /* GraphQL */ `
     mutation ($id: ID!, $input: UpdateProductChoiceGroupInput!) {
       updateProductChoiceGroup(id: $id, input: $input) {
         id
@@ -866,7 +865,7 @@ const saveChoices = async (productId: string) => {
     }
   `
 
-  const CREATE_CHOICE = gql`
+  const CREATE_CHOICE = /* GraphQL */ `
     mutation ($input: CreateProductChoiceInput!) {
       createProductChoice(input: $input) {
         id
@@ -882,7 +881,7 @@ const saveChoices = async (productId: string) => {
       }
     }
   `
-  const UPDATE_CHOICE = gql`
+  const UPDATE_CHOICE = /* GraphQL */ `
     mutation ($id: ID!, $input: UpdateProductChoiceInput!) {
       updateProductChoice(id: $id, input: $input) {
         id

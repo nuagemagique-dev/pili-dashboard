@@ -3,7 +3,6 @@
 // Run: `vp test run tests/composables/useGqlMutation.nuxt.test.ts`.
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
-import gql from 'graphql-tag'
 import { useGqlMutation } from '~/composables/useGqlMutation'
 
 const gqlFetch = vi.hoisted(() => vi.fn())
@@ -27,21 +26,6 @@ describe('mutate', () => {
 
     expect(gqlFetch).toHaveBeenCalledExactlyOnceWith(MUTATION, { variables: { id: 'o-1' } })
     expect(data.value).toEqual({ cancelOrder: { id: 'o-1' } })
-  })
-
-  it('prints a parsed document', async () => {
-    gqlFetch.mockResolvedValue({})
-    const { mutate } = useGqlMutation(gql`
-      mutation Cancel($id: ID!) {
-        cancelOrder(id: $id) {
-          id
-        }
-      }
-    `)
-    await mutate({ id: 'o-1' })
-    expect(gqlFetch.mock.calls[0]![0]).toMatch(
-      /^mutation Cancel\(\$id: ID!\) \{\s+cancelOrder\(id: \$id\) \{\s+id\s+\}\s+\}\s*$/u,
-    )
   })
 
   it('sends empty variables when called without any', async () => {

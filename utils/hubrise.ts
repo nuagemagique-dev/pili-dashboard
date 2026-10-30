@@ -286,9 +286,12 @@ export const HUBRISE_PRODUCT_FIELDS = `
   }
 `
 
-/** The selection to add to a product query: the HubRise fields when HubRise is there, nothing otherwise. */
-export const productHubriseFields = (status: HubriseStatus | null): string =>
-  status?.available === true ? HUBRISE_PRODUCT_FIELDS : ''
+/**
+ * A product document for this server. Documents are written with the HubRise fields, so the contract
+ * check validates them; a server without HubRise does not know them and would refuse the whole query.
+ */
+export const productDocument = (document: string, status: HubriseStatus | null): string =>
+  status?.available === true ? document : document.replaceAll(HUBRISE_PRODUCT_FIELDS, '')
 
 /** The selection of the HubRise state of an order, asked only where the server has HubRise. */
 export const HUBRISE_ORDER_FIELDS = `
@@ -302,8 +305,9 @@ export const HUBRISE_ORDER_FIELDS = `
   }
 `
 
-export const orderHubriseFields = (status: HubriseStatus | null): string =>
-  status?.available === true ? HUBRISE_ORDER_FIELDS : ''
+/** An order document for this server, see productDocument. */
+export const orderDocument = (document: string, status: HubriseStatus | null): string =>
+  status?.available === true ? document : document.replaceAll(HUBRISE_ORDER_FIELDS, '')
 
 // ─── Error codes ────────────────────────────────────────────────────────────────
 

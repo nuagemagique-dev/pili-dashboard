@@ -2,7 +2,7 @@ name: Release (tag + deploy)
 
 # Manual UI button: tags the current HEAD of main with the provided version
 # and pushes the tag, which triggers the existing "Build and Deploy" workflow
-# (build_production + deploy_production) automatically.
+# (build_production_tokyosushi + deploy_production_tokyosushi) automatically.
 
 on:
   workflow_dispatch:
@@ -14,6 +14,8 @@ on:
 
 permissions:
   contents: write
+  # Reads the CI results of the commit about to be tagged.
+  actions: read
 
 jobs:
   tag_and_release:
@@ -21,7 +23,7 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout main
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
           # PAT (not GITHUB_TOKEN) so the tag push triggers the downstream
@@ -41,6 +43,14 @@ jobs:
             echo "::error::Tag ${{ inputs.version }} already exists. Bump it or delete it first."
             exit 1
           fi
+
+      # Nothing untested reaches production: main HEAD must have passed the test
+      # jobs and every other CI run. If it is still building, wait and run again.
+      - name: Require a green main
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: bash .github/scripts/main-green.sh "$(git rev-parse HEAD)"
 
       - name: Create and push tag
         run: |

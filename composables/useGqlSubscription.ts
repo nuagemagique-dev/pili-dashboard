@@ -1,7 +1,6 @@
 // Composables/useGqlSubscription.ts
-import { type DocumentNode, print } from 'graphql'
 import { onScopeDispose, ref } from 'vue'
-import type { Client } from 'graphql-ws'
+import type { Client } from 'graphql-ws/client'
 import { useRuntimeConfig } from '#imports'
 import { hasText, isRecord } from '~/utils/guards'
 
@@ -63,85 +62,86 @@ const ensureGlobalListeners = () => {
 
 const getWsClient = (): Promise<Client> => {
   if (wsClient) return Promise.resolve(wsClient)
-  wsClientPromise ??= Promise.all([import('graphql-ws'), import('~/composables/useOidc')]).then(
-    ([{ createClient }, { useOidc }]) => {
-      const cfg = useRuntimeConfig()
-      const { getAccessToken, isRenewalUnavailable } = useOidc()
+  wsClientPromise ??= Promise.all([
+    import('graphql-ws/client'),
+    import('~/composables/useOidc'),
+  ]).then(([{ createClient }, { useOidc }]) => {
+    const cfg = useRuntimeConfig()
+    const { getAccessToken, isRenewalUnavailable } = useOidc()
 
+    /*
+     * `keepAlive` only schedules pings: detection of a dead server
+     * requires our own pong watchdog. Track the active socket so we
+     * can force-close it when the server stops responding.
+     */
+    let activeSocket: WatchedSocket | null = null
+    let pongTimer: ReturnType<typeof setTimeout> | null = null
+
+    const client = createClient({
+      url: cfg.public.graphqlWs,
+      connectionParams: async () => {
+        const token = await getAccessToken()
+        return hasText(token) ? { Authorization: `Bearer ${token}` } : {}
+      },
       /*
-       * `keepAlive` only schedules pings: detection of a dead server
-       * requires our own pong watchdog. Track the active socket so we
-       * can force-close it when the server stops responding.
+       * Ping every 12s; with the pong watchdog below, dropped
+       * connections (network blip, proxy idle timeout) surface
+       * within ~17s instead of waiting for the next outbound msg.
        */
-      let activeSocket: WatchedSocket | null = null
-      let pongTimer: ReturnType<typeof setTimeout> | null = null
-
-      const client = createClient({
-        url: cfg.public.graphqlWs,
-        connectionParams: async () => {
-          const token = await getAccessToken()
-          return hasText(token) ? { Authorization: `Bearer ${token}` } : {}
+      keepAlive: 12_000,
+      on: {
+        connected: (socket) => {
+          activeSocket = isWatchedSocket(socket) ? socket : null
         },
+        closed: () => {
+          if (pongTimer) {
+            clearTimeout(pongTimer)
+            pongTimer = null
+          }
+          activeSocket = null
+        },
+        ping: (received) => {
+          if (received) return
+          if (pongTimer) clearTimeout(pongTimer)
+          pongTimer = setTimeout(() => {
+            if (activeSocket?.readyState === WebSocket.OPEN) {
+              activeSocket.close(4408, 'Pong timeout')
+            }
+          }, 5_000)
+        },
+        pong: (received) => {
+          if (received && pongTimer) {
+            clearTimeout(pongTimer)
+            pongTimer = null
+          }
+        },
+      },
+      retryAttempts: Infinity,
+      retryWait: async (retries) => {
+        const delay = Math.min(1000 * 2 ** retries, 30_000)
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, delay)
+        })
+        const token = await getAccessToken()
+        if (hasText(token)) return
         /*
-         * Ping every 12s; with the pong watchdog below, dropped
-         * connections (network blip, proxy idle timeout) surface
-         * within ~17s instead of waiting for the next outbound msg.
+         * No token: either the session is over (stop: graphql-ws gives up and the login flow takes over), or it is
+         * kept but Zitadel / the backend cannot be reached right now (keep backing off: only an offline -> online
+         * event of the browser would otherwise restart the subscriptions, and that does not fire when the outage
+         * is not on the device's side). There is no live-updates indicator in the UI, so this is only logged.
          */
-        keepAlive: 12_000,
-        on: {
-          connected: (socket) => {
-            activeSocket = isWatchedSocket(socket) ? socket : null
-          },
-          closed: () => {
-            if (pongTimer) {
-              clearTimeout(pongTimer)
-              pongTimer = null
-            }
-            activeSocket = null
-          },
-          ping: (received) => {
-            if (received) return
-            if (pongTimer) clearTimeout(pongTimer)
-            pongTimer = setTimeout(() => {
-              if (activeSocket?.readyState === WebSocket.OPEN) {
-                activeSocket.close(4408, 'Pong timeout')
-              }
-            }, 5_000)
-          },
-          pong: (received) => {
-            if (received && pongTimer) {
-              clearTimeout(pongTimer)
-              pongTimer = null
-            }
-          },
-        },
-        retryAttempts: Infinity,
-        retryWait: async (retries) => {
-          const delay = Math.min(1000 * 2 ** retries, 30_000)
-          await new Promise<void>((resolve) => {
-            setTimeout(resolve, delay)
-          })
-          const token = await getAccessToken()
-          if (hasText(token)) return
-          /*
-           * No token: either the session is over (stop: graphql-ws gives up and the login flow takes over), or it is
-           * kept but Zitadel / the backend cannot be reached right now (keep backing off: only an offline -> online
-           * event of the browser would otherwise restart the subscriptions, and that does not fire when the outage
-           * is not on the device's side). There is no live-updates indicator in the UI, so this is only logged.
-           */
-          if (!isRenewalUnavailable()) throw new Error('No valid auth token')
-          console.warn('Live updates paused: the session cannot be renewed right now, retrying')
-        },
-      })
-      wsClient = client
-      return client
-    },
-  )
+        if (!isRenewalUnavailable()) throw new Error('No valid auth token')
+        console.warn('Live updates paused: the session cannot be renewed right now, retrying')
+      },
+    })
+    wsClient = client
+    return client
+  })
   return wsClientPromise
 }
 
 export function useGqlSubscription<T = unknown>(
-  rawSub: string | DocumentNode,
+  query: string,
   variables: Record<string, unknown> = {},
 ) {
   const data = ref<T | null>()
@@ -159,7 +159,7 @@ export function useGqlSubscription<T = unknown>(
         if (disposed) return
         stop = client.subscribe<T>(
           {
-            query: typeof rawSub === 'string' ? rawSub : print(rawSub),
+            query,
             variables,
           },
           {

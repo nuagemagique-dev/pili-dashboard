@@ -2,7 +2,6 @@
 // payment chips). The logic itself is tested in tests/utils/orders.test.ts; this proves the page is wired to it.
 // Run: `vp test run tests/pages/orders.nuxt.test.ts`.
 import type * as VueI18NModule from 'vue-i18n'
-import { type DocumentNode, print } from 'graphql'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { ref } from 'vue'
 import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
@@ -26,8 +25,8 @@ mockNuxtImport('useNuxtApp', async (original) => {
   const { withGqlFetch } = await import('../helpers/gqlFetch')
   return () => withGqlFetch(original(), gqlFetch)
 })
-mockNuxtImport('useGqlQuery', () => (query: string | DocumentNode) => {
-  gql.queries.push(typeof query === 'string' ? query : print(query))
+mockNuxtImport('useGqlQuery', () => (query: string) => {
+  gql.queries.push(query)
   return Promise.resolve({
     data: ref({ orders: gql.orders }),
     pending: ref(false),

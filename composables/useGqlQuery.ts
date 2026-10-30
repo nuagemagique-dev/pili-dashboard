@@ -1,5 +1,4 @@
 // Composables/useGqlQuery.ts
-import { type DocumentNode, print } from 'graphql'
 import { type Ref, watch } from 'vue'
 import { useAsyncData, useNuxtApp } from '#imports'
 import { hash } from 'ohash'
@@ -20,13 +19,13 @@ interface GqlQueryResult<T> {
 }
 
 export const useGqlQuery = async <T>(
-  rawQuery: string | DocumentNode,
+  query: string,
   variables: Vars = {},
   opts: Options = { immediate: true, cache: false }, // ⬅ default cache:false
 ): Promise<GqlQueryResult<T>> => {
   const { $gqlFetch } = useNuxtApp()
   const getVars = () => (typeof variables === 'function' ? variables() : variables)
-  const handler = () => $gqlFetch<T>(printIfAst(rawQuery), { variables: getVars() })
+  const handler = () => $gqlFetch<T>(query, { variables: getVars() })
 
   /*
    * The async-data key. `cache: true` keys the data by the document: the same query shares its data wherever it is used.
@@ -35,7 +34,6 @@ export const useGqlQuery = async <T>(
    * first one's handler and data), while two identical ones are one query. Variables that change later are handled by
    * the refetch below, under the same key.
    */
-  const query = printIfAst(rawQuery)
   const key = opts.cache === true ? `gql:${hash(query)}` : `gql:${hash([query, getVars()])}`
   const asyncOpts = { immediate: opts.immediate, server: opts.server }
   const asyncData = await useAsyncData<T>(key, handler, asyncOpts)
@@ -53,5 +51,3 @@ export const useGqlQuery = async <T>(
   result.refetch = asyncData.refresh
   return result
 }
-
-const printIfAst = (q: string | DocumentNode): string => (typeof q === 'string' ? q : print(q))

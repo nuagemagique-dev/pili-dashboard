@@ -1,7 +1,5 @@
 import { ref } from 'vue'
 import { useNuxtApp } from '#imports'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { useHubriseStatus } from '~/composables/useHubriseStatus'
 import {
   type HubriseCatalogDiff,
@@ -36,15 +34,15 @@ const DIFF_FIELDS = `
   retireNeedsConfirm
 `
 
-const PREVIEW_SYNC = print(gql`
+const PREVIEW_SYNC = /* GraphQL */ `
   mutation PreviewHubriseCatalogSync($mode: HubriseSyncMode!) {
     previewHubriseCatalogSync(mode: $mode) {
       ${DIFF_FIELDS}
     }
   }
-`)
+`
 
-const SYNC = print(gql`
+const SYNC = /* GraphQL */ `
   mutation SyncHubriseCatalog($mode: HubriseSyncMode!, $confirmRetire: Boolean) {
     syncHubriseCatalog(mode: $mode, confirmRetire: $confirmRetire) {
       mode
@@ -56,7 +54,7 @@ const SYNC = print(gql`
       }
     }
   }
-`)
+`
 
 /**
  * The IMPORT side of the menu (HubRise owns it): the dry run that shows what an import would do, and the import itself,

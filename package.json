@@ -13,55 +13,43 @@
     "test:watch": "vp test",
     "lint": "vp lint",
     "check": "vp check",
+    "check:graphql": "node scripts/check-graphql-operations.mjs --root .",
     "fmt": "vp fmt",
-    "cap:build": "APP_BUILD=capacitor nuxt build && node scripts/cap-extract-spa.mjs",
-    "build:android": "APP_BUILD=capacitor nuxt build && node scripts/cap-extract-spa.mjs && npx cap sync android",
-    "cap:sync": "npx cap sync android",
-    "cap:open": "npx cap open android",
     "prepare": "vp config"
   },
   "dependencies": {
-    "@capacitor/android": "^8.5.3",
-    "@capacitor/app": "^8.1.2",
-    "@capacitor/core": "^8.5.3",
-    "@capacitor/haptics": "^8.0.2",
-    "@capacitor/push-notifications": "^8.1.3",
-    "@capacitor/splash-screen": "^8.0.2",
-    "@capacitor/status-bar": "^8.0.4",
-    "@iconify-json/lucide": "^1.2.143",
-    "@nuxt/icon": "^2.5.1",
-    "@nuxt/ui": "^4.11.3",
-    "@pinia/nuxt": "^1.0.2",
-    "capacitor-sunmi-printer": "file:./plugins/capacitor-sunmi-printer",
-    "graphql": "^17.0.2",
-    "graphql-tag": "^2.12.7",
-    "graphql-ws": "^6.3.0",
-    "nuxt": "4.6.1",
+    "@iconify-json/lucide": "^1.2.147",
+    "@nuxt/ui": "^4.12.0",
+    "@pinia/nuxt": "^1.0.3",
+    "graphql-ws": "^6.4.1",
+    "nuxt": "4.6.3",
     "oidc-client-ts": "^3.5.0",
     "pinia-plugin-persistedstate": "^4.7.1",
     "uqr": "0.1.3"
   },
   "devDependencies": {
-    "@capacitor/cli": "^8.5.3",
-    "@nuxt/test-utils": "^4.3.2",
+    "@nuxt/test-utils": "^4.3.4",
     "@nuxtjs/i18n": "^10.6.0",
-    "@types/node": "^24.19.1",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^24.19.2",
+    "@types/ws": "^8.18.2",
     "@vitest/coverage-v8": "5.0.5",
     "@vue/test-utils": "^2.5.1",
-    "happy-dom": "^21.0.1",
+    "graphql": "^17.0.2",
+    "happy-dom": "^21.0.4",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vite-plus": "1.3.0",
-    "vue-tsc": "^3.3.13"
-  },
-  "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.3.0"
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
+    "vite-plus": "1.4.0",
+    "vue-tsc": "^3.3.13",
+    "ws": "^8.22.0"
   },
   "devEngines": {
     "packageManager": {
-      "name": "npm",
-      "version": "11.19.0",
-      "onFail": "download"
+      "name": "pnpm",
+      "version": "^12.15.0",
+      "onFail": "error"
     }
-  }
+  },
+  "packageManager": "pnpm@12.15.0"
 }

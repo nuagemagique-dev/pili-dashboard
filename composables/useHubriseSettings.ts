@@ -1,7 +1,5 @@
 import { ref } from 'vue'
 import { navigateTo, useNuxtApp } from '#imports'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { HUBRISE_STATUS_FIELDS, useHubriseStatus } from '~/composables/useHubriseStatus'
 import type {
   HubriseOutboxItem,
@@ -10,47 +8,47 @@ import type {
   HubriseStatus,
 } from '~/utils/hubrise'
 
-const UPDATE_SETTINGS = print(gql`
+const UPDATE_SETTINGS = /* GraphQL */ `
   mutation UpdateHubriseSettings($input: HubriseSettingsInput!) {
     updateHubriseSettings(input: $input) {
       ${HUBRISE_STATUS_FIELDS}
     }
   }
-`)
+`
 
-const START_CONNECTION = print(gql`
+const START_CONNECTION = /* GraphQL */ `
   mutation StartHubriseConnection {
     startHubriseConnection
   }
-`)
+`
 
-const DISCONNECT = print(gql`
+const DISCONNECT = /* GraphQL */ `
   mutation DisconnectHubrise($forgetLinks: Boolean) {
     disconnectHubrise(forgetLinks: $forgetLinks) {
       ${HUBRISE_STATUS_FIELDS}
     }
   }
-`)
+`
 
-const FORGET_LINKS = print(gql`
+const FORGET_LINKS = /* GraphQL */ `
   mutation ForgetHubriseLinks {
     forgetHubriseLinks
   }
-`)
+`
 
-const SYNC_INVENTORY = print(gql`
+const SYNC_INVENTORY = /* GraphQL */ `
   mutation SyncHubriseInventory {
     syncHubriseInventory
   }
-`)
+`
 
-const LINK_PRODUCT = print(gql`
+const LINK_PRODUCT = /* GraphQL */ `
   mutation LinkHubriseProduct($productId: ID!, $skuRef: String) {
     linkHubriseProduct(productId: $productId, skuRef: $skuRef)
   }
-`)
+`
 
-const OUTBOX = print(gql`
+const OUTBOX = /* GraphQL */ `
   query HubriseOutbox($state: HubriseOutboxState, $first: Int) {
     hubriseOutbox(state: $state, first: $first) {
       id
@@ -65,13 +63,13 @@ const OUTBOX = print(gql`
       parkedAt
     }
   }
-`)
+`
 
-const RETRY_OUTBOX = print(gql`
+const RETRY_OUTBOX = /* GraphQL */ `
   mutation RetryHubriseOutbox($id: String) {
     retryHubriseOutbox(id: $id)
   }
-`)
+`
 
 /** Rows of the outbox the page lists at once. */
 export const OUTBOX_PAGE_SIZE = 50

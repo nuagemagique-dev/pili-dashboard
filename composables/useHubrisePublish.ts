@@ -1,7 +1,5 @@
 import { onScopeDispose, ref } from 'vue'
 import { useNuxtApp } from '#imports'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import {
   HUBRISE_PUBLISH_FIELDS,
   HUBRISE_STATUS_FIELDS,
@@ -23,7 +21,7 @@ const ISSUE_FIELDS = `
   message
 `
 
-const SET_DIRECTION = print(gql`
+const SET_DIRECTION = /* GraphQL */ `
   mutation SetHubriseCatalogDirection(
     $direction: HubriseCatalogDirection!
     $acknowledgeLocalOverwrite: Boolean
@@ -35,9 +33,9 @@ const SET_DIRECTION = print(gql`
       ${HUBRISE_STATUS_FIELDS}
     }
   }
-`)
+`
 
-const PREVIEW = print(gql`
+const PREVIEW = /* GraphQL */ `
   query PreviewHubriseCatalogPublish($removeForeign: Boolean) {
     previewHubriseCatalogPublish(removeForeign: $removeForeign) {
       planHash
@@ -78,9 +76,9 @@ const PREVIEW = print(gql`
       generatedAt
     }
   }
-`)
+`
 
-const PUBLISH = print(gql`
+const PUBLISH = /* GraphQL */ `
   mutation PublishHubriseCatalog($confirmRemovals: Boolean, $removeForeign: Boolean, $planHash: String) {
     publishHubriseCatalog(
       confirmRemovals: $confirmRemovals
@@ -94,15 +92,15 @@ const PUBLISH = print(gql`
       }
     }
   }
-`)
+`
 
-const ACKNOWLEDGE = print(gql`
+const ACKNOWLEDGE = /* GraphQL */ `
   mutation AcknowledgeHubriseExternalChange {
     acknowledgeHubriseExternalChange {
       ${HUBRISE_STATUS_FIELDS}
     }
   }
-`)
+`
 
 /**
  * The PUBLISH side of the menu (the dashboard owns it): who owns the menu, the preview of what a publish would change,

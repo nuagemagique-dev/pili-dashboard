@@ -1,0 +1,7 @@
+{
+  "GHSA-86w9-cpqp-85rv": {
+    "until": "2026-12-31",
+    "package": "node-forge",
+    "reason": "Only through listhen, the nitropack dev server helper that makes self-signed certificates for nuxi dev --https; the production image runs the bundled .output/server without it, and the flaw is in RSA signature verification, which listhen never does. No patched node-forge release (1.4.0 is the latest)."
+  }
+}

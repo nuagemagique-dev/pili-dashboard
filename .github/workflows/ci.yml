@@ -1,8 +1,17 @@
 name: CI
 
+# Pull requests run this directly. Pushes to main and release tags run it through
+# the "tests" job of action.yml (workflow_call), which every image build waits for.
 on:
   pull_request:
     branches: [main]
+  workflow_call:
+  # Started by dependabot-vite-plus.yml after it pushed on a Dependabot branch.
+  workflow_dispatch:
+
+# A called workflow cannot hold more than its caller grants.
+permissions:
+  contents: read
 
 jobs:
   check:
@@ -10,10 +19,10 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Vite+
-        uses: voidzero-dev/setup-vp@v1.21.1
+        uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
         with:
           node-version: '24'
           cache: true
@@ -26,10 +35,10 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Vite+
-        uses: voidzero-dev/setup-vp@v1.21.1
+        uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
         with:
           node-version: '24'
           cache: true
@@ -43,10 +52,10 @@ jobs:
     runs-on: ubuntu-26.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Vite+
-        uses: voidzero-dev/setup-vp@v1.21.1
+        uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
         with:
           node-version: '24'
           cache: true
@@ -55,6 +64,11 @@ jobs:
       # No secrets and no network: the Nuxt project boots on dummy runtime config (tests/support/nuxtProject.ts).
       - name: Run vp test with coverage
         run: vp test run --coverage
+
+      # The release and nightly workflows refuse an untested commit through
+      # this script: keep its verdicts honest.
+      - name: Self-test the green-commit gate
+        run: bash .github/scripts/main-green.test.sh
 
   build:
     name: Build
@@ -66,13 +80,74 @@ jobs:
       GRAPHQL_WS_URL: wss://localhost/api/v1/graphql
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Vite+
-        uses: voidzero-dev/setup-vp@v1.21.1
+        uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
         with:
           node-version: '24'
           cache: true
 
       - name: Build
         run: vp run build
+
+  e2e:
+    name: E2E (mock backend)
+    # The production build against the in-repo mock of tsb-service and fake Zitadel (e2e/mock): no secret, database or
+    # network. Starts only once the cheap checks passed, so a lint, type or build failure never pays for a browser run.
+    needs: [check, typecheck, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@cab1ab9eaff52d4857875f4f2c016e36af8f2c76 # v1.22.0
+        with:
+          node-version: '24'
+          cache: true
+
+      - name: Install Playwright browsers
+        run: vp exec playwright install --with-deps chromium
+
+      # Builds the app itself (Playwright webServer), then runs the desktop and the phone project.
+      - name: Run E2E tests against the mock
+        run: vp exec playwright test
+
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: playwright-report
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  docker:
+    name: Docker image (build and boot smoke)
+    # Pull requests only. On main and release tags action.yml builds and smokes the real image itself; a pull request
+    # never built it, so a Dockerfile or base-image bump (Dependabot's node:* PRs) could merge without ever being
+    # installed. Inside the called workflow github.event_name is the caller's event, hence the guard.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Dummy origins: the SPA is only booted, never pointed at a real backend.
+      - name: Build the image (amd64)
+        run: |
+          docker build \
+            --build-arg DASHBOARD_BASE_URL=https://dash.example.test \
+            --build-arg API_BASE_URL=https://api.example.test/api/v1 \
+            --build-arg S3_BUCKET_URL=https://s3.example.test \
+            --build-arg GRAPHQL_WS_URL=wss://api.example.test/api/v1/graphql \
+            --build-arg ZITADEL_AUTHORITY=https://auth.example.test \
+            --build-arg ZITADEL_CLIENT_ID=test \
+            --tag dashboard-pr-smoke:latest .
+
+      - name: Boot smoke test
+        run: scripts/ci-smoke-image.sh dashboard-pr-smoke:latest

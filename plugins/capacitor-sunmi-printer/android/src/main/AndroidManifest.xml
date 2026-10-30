@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!--
-        No extra permissions needed for the Sunmi built-in printer.
-        It is a system service, access is granted automatically on Sunmi devices.
-    -->
-</manifest>

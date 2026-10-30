@@ -1,0 +1,22 @@
+allowBuilds:
+  esbuild: true
+  vue-demi: true
+overrides:
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+# Packages the app imports but whose version belongs to a framework package:
+# nuxt (vue, vue-router, ohash, ofetch), @pinia/nuxt (pinia) and @nuxtjs/i18n
+# (vue-i18n). They are hoisted from that package's tree instead of declared in
+# package.json, so they move only when it moves: declared, Dependabot bumped
+# them alone (a vue-i18n ahead of the @intlify runtime @nuxtjs/i18n pins).
+#
+# vitest: @nuxt/test-utils finds out which vitest major runs by resolving
+# `vitest` from the project root, and picks the module to import (vitest/runtime
+# from 5 on) from it. Nothing depends on vitest directly (vite-plus bundles it).
+publicHoistPattern:
+  - vitest
+  - vue
+  - vue-router
+  - ohash
+  - ofetch
+  - pinia
+  - vue-i18n

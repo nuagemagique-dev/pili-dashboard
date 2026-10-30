@@ -1,0 +1,61 @@
+name: Security scan
+
+# Daily audit of the production dependencies against the npm advisory
+# database (through pnpm audit): fails on a high or critical advisory that the allowlist does not
+# cover. Dependabot security updates open the fix PRs; "CI watch" posts a failure to Telegram.
+
+on:
+  schedule:
+    - cron: '20 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pnpm-audit:
+    name: pnpm audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          # The project is driven by pnpm, installed below: skip the npm cache.
+          package-manager-cache: false
+
+      # The pnpm that package.json's packageManager pins, installed from outside
+      # the project (devEngines refuses any other package manager inside it).
+      # Fails on a high or critical advisory, unless .github/audit-allowlist.json
+      # lists its GHSA id with a reason and a review date that has not passed.
+      - name: pnpm audit (production dependencies)
+        run: |
+          set -euo pipefail
+          pnpm_version=$(jq -er '.packageManager | select(startswith("pnpm@")) | ltrimstr("pnpm@")' package.json)
+          (cd "$RUNNER_TEMP" && npm install -g "pnpm@${pnpm_version}")
+          pnpm --version
+          # Exits non-zero when it finds anything: the verdict is the allowlist's, below.
+          pnpm audit --prod --json > "$RUNNER_TEMP/audit.json" || true
+          today=$(date -u +%F)
+          jq -r '[.advisories[] | select(.severity == "high" or .severity == "critical")
+                  | "\(.github_advisory_id)\t\(.severity)\t\(.module_name)@\(.vulnerable_versions)\t\(.title)"] | unique[]' \
+            "$RUNNER_TEMP/audit.json" > "$RUNNER_TEMP/findings.tsv"
+          allow='{}'
+          [ -f .github/audit-allowlist.json ] && allow=$(cat .github/audit-allowlist.json)
+          failed=0
+          while IFS=$'\t' read -r id severity pkg title; do
+            until=$(jq -r --arg id "$id" '.[$id].until // empty' <<<"$allow")
+            if [ -n "$until" ] && [[ ! "$until" < "$today" ]]; then
+              echo "allowed until $until: $id $severity $pkg ($(jq -r --arg id "$id" '.[$id].reason' <<<"$allow"))"
+            else
+              [ -n "$until" ] && echo "::error::$id: allowlist entry expired on $until, review it"
+              echo "::error::$id $severity $pkg: $title"
+              failed=1
+            fi
+          done < "$RUNNER_TEMP/findings.tsv"
+          echo "$(wc -l < "$RUNNER_TEMP/findings.tsv" | tr -d ' ') high or critical advisories."
+          exit "$failed"

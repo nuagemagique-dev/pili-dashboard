@@ -1,10 +1,9 @@
 import { computed, onUnmounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useGqlMutation, useToast } from '#imports'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import type { Order, OrderStatus } from '~/types'
 import { formatTimeOnly, timeToRFC3339 } from '~/utils/utils'
+import { HUBRISE_ORDER_FIELDS } from '~/utils/hubrise'
 import { getAllowedStatuses, updateOrderErrorKey } from '~/utils/orders'
 import { useOrdersStore } from '~/stores/orders'
 import { hasText } from '~/utils/guards'
@@ -16,7 +15,7 @@ interface UseOrderActionsOptions {
   onDone?: (kind: OrderActionKind) => void
 }
 
-const UPDATE_ORDER_MUTATION = gql`
+const UPDATE_ORDER_MUTATION = /* GraphQL */ `
   mutation ($id: ID!, $input: UpdateOrderInput!) {
     updateOrder(id: $id, input: $input) {
       id
@@ -27,7 +26,7 @@ const UPDATE_ORDER_MUTATION = gql`
   }
 `
 
-const UPDATE_PAYMENT_STATUS_MUTATION = gql`
+const UPDATE_PAYMENT_STATUS_MUTATION = /* GraphQL */ `
   mutation ($orderId: ID!, $status: String!) {
     updatePaymentStatus(orderId: $orderId, status: $status) {
       id
@@ -36,10 +35,9 @@ const UPDATE_PAYMENT_STATUS_MUTATION = gql`
   }
 `
 
-// Same fields as the orders list query in pages/orders.vue; `extraFields` is a selection added to the order (the HubRise
-// state, asked only where the server has HubRise).
-export const buildOrderByIdQuery = (extraFields = ''): string =>
-  print(gql`
+// Same fields as the orders list query in pages/orders.vue. A caller goes through orderDocument for a
+// server without HubRise.
+export const ORDER_BY_ID_QUERY = /* GraphQL */ `
   query ($id: ID!) {
     order(id: $id) {
       id
@@ -104,16 +102,14 @@ export const buildOrderByIdQuery = (extraFields = ''): string =>
           name
         }
       }
-      ${extraFields}
+      ${HUBRISE_ORDER_FIELDS}
     }
   }
-`)
-
-export const ORDER_BY_ID_QUERY = buildOrderByIdQuery()
+`
 
 /**
  * Order actions shared by the desktop slideover and the mobile detail page:
- * status transitions, estimated ready time, payment, printing and cancellation.
+ * status transitions, estimated ready time, payment and cancellation.
  */
 export function useOrderActions(options: UseOrderActionsOptions = {}) {
   const { t, locale } = useI18n()
@@ -445,89 +441,6 @@ export function useOrderActions(options: UseOrderActionsOptions = {}) {
     }
   }
 
-  // Printing
-  const { printDelivery: sunmiPrintDelivery, printKitchen: sunmiPrintKitchen } = useSunmiPrinter()
-
-  const printDelivery = async () => {
-    if (!selectedOrder.value) return
-    try {
-      await sunmiPrintDelivery(selectedOrder.value)
-    } catch (error) {
-      if (import.meta.dev) console.error('Print failed:', error)
-      toast.add({ title: t('orders.errors.printFailed'), color: 'error' })
-    }
-  }
-
-  const printKitchen = async () => {
-    if (!selectedOrder.value) return
-    try {
-      await sunmiPrintKitchen(selectedOrder.value)
-    } catch (error) {
-      if (import.meta.dev) console.error('Kitchen print failed:', error)
-      toast.add({ title: t('orders.errors.printFailed'), color: 'error' })
-    }
-  }
-
-  // Two-step print flow: kitchen, confirm, then client. Required on devices
-  // without an auto-cutter (Sunmi V3H) so the operator can tear the kitchen
-  // ticket before the client ticket prints and the two sheets are not stuck
-  // together.
-  const showPrintContinueDialog = ref(false)
-  const printContinueOrderId = ref<string | null>(null)
-
-  const printBoth = async () => {
-    if (!selectedOrder.value) return
-    try {
-      await sunmiPrintKitchen(selectedOrder.value)
-      printContinueOrderId.value = selectedOrder.value.id
-      showPrintContinueDialog.value = true
-    } catch (error) {
-      if (import.meta.dev) console.error('Kitchen print failed:', error)
-      toast.add({ title: t('orders.errors.printFailed'), color: 'error' })
-    }
-  }
-
-  const continueToClientPrint = async () => {
-    showPrintContinueDialog.value = false
-    const orderId = printContinueOrderId.value
-    printContinueOrderId.value = null
-    if (!hasText(orderId)) return
-    const order = ordersStore.orders.find((o) => o.id === orderId) ?? selectedOrder.value
-    if (!order) return
-    try {
-      await sunmiPrintDelivery(order)
-    } catch (error) {
-      if (import.meta.dev) console.error('Client print failed:', error)
-      toast.add({ title: t('orders.errors.printFailed'), color: 'error' })
-    }
-  }
-
-  const cancelContinueClientPrint = () => {
-    showPrintContinueDialog.value = false
-    printContinueOrderId.value = null
-  }
-
-  // Print menu items (desktop dropdown and mobile sheet)
-  const printMenuItems = computed(() => [
-    [
-      {
-        label: t('orders.print.both'),
-        icon: 'i-lucide-printer',
-        click: () => printBoth(),
-      },
-      {
-        label: t('orders.print.delivery'),
-        icon: 'i-lucide-truck',
-        click: () => printDelivery(),
-      },
-      {
-        label: t('orders.print.kitchen'),
-        icon: 'i-lucide-chef-hat',
-        click: () => printKitchen(),
-      },
-    ],
-  ])
-
   onUnmounted(() => {
     if (cancelTimer !== undefined) {
       clearInterval(cancelTimer)
@@ -564,12 +477,5 @@ export function useOrderActions(options: UseOrderActionsOptions = {}) {
     openCancelDialog,
     confirmCancellation,
     cancelCancellation,
-    printDelivery,
-    printKitchen,
-    printBoth,
-    showPrintContinueDialog,
-    continueToClientPrint,
-    cancelContinueClientPrint,
-    printMenuItems,
   }
 }

@@ -7,7 +7,6 @@ import { effectScope, nextTick, ref } from 'vue'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { clearNuxtData, useNuxtData } from '#imports'
 import { hash } from 'ohash'
-import gql from 'graphql-tag'
 import { settle } from '../helpers/settle'
 import { useGqlQuery as useGqlQueryUnscoped } from '~/composables/useGqlQuery'
 
@@ -61,20 +60,6 @@ describe('asking', () => {
     expect(data.value).toEqual({ thing: { id: 't-1' } })
     expect(pending.value).toBe(false)
     expect(error.value).toBeUndefined()
-  })
-
-  it('prints a parsed document', async () => {
-    gqlFetch.mockResolvedValue({})
-    await useGqlQuery(gql`
-      query OrderList {
-        orders {
-          id
-        }
-      }
-    `)
-    expect(gqlFetch.mock.calls[0]![0]).toMatch(
-      /^query OrderList \{\s+orders \{\s+id\s+\}\s+\}\s*$/u,
-    )
   })
 
   it('sends the variables, given as an object', async () => {

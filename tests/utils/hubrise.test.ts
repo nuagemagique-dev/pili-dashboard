@@ -28,9 +28,9 @@ import {
   orderHubriseBadges,
   planDirectionChange,
   previewHasChanges,
-  orderHubriseFields,
+  orderDocument,
   HUBRISE_ORDER_FIELDS,
-  productHubriseFields,
+  productDocument,
   HUBRISE_PRODUCT_FIELDS,
   publishChip,
   publishCountRows,
@@ -728,9 +728,12 @@ describe('banner helpers', () => {
 
 describe('product query fields', () => {
   it('asks for the HubRise fields only where HubRise is configured', () => {
-    expect(productHubriseFields(makeStatus())).toBe(HUBRISE_PRODUCT_FIELDS)
-    expect(productHubriseFields(makeStatus({ available: false }))).toBe('')
-    expect(productHubriseFields(null)).toBe('')
+    const document = `query { products { id ${HUBRISE_PRODUCT_FIELDS} } }`
+    expect(productDocument(document, makeStatus())).toBe(document)
+    expect(productDocument(document, makeStatus({ available: false }))).toBe(
+      'query { products { id  } }',
+    )
+    expect(productDocument(document, null)).toBe('query { products { id  } }')
     for (const field of [
       'hubriseManaged',
       'hubriseLockedFields',
@@ -744,9 +747,12 @@ describe('product query fields', () => {
 
 describe('order query fields', () => {
   it('asks for the HubRise state only where HubRise is configured', () => {
-    expect(orderHubriseFields(makeStatus())).toBe(HUBRISE_ORDER_FIELDS)
-    expect(orderHubriseFields(makeStatus({ available: false }))).toBe('')
-    expect(orderHubriseFields(null)).toBe('')
+    const document = `query { orders { id ${HUBRISE_ORDER_FIELDS} } }`
+    expect(orderDocument(document, makeStatus())).toBe(document)
+    expect(orderDocument(document, makeStatus({ available: false }))).toBe(
+      'query { orders { id  } }',
+    )
+    expect(orderDocument(document, null)).toBe('query { orders { id  } }')
     for (const field of [
       'hubriseOrderId',
       'pushState',

@@ -12,12 +12,6 @@ import { useRuntimeConfig } from '#imports'
 let userManager: UserManager | null = null
 const oidcUser: Ref<OidcUser | null> = ref(null)
 
-// Simple token storage for Capacitor (bypasses oidc-client-ts complexity)
-const CAPACITOR_TOKEN_KEY = 'capacitor_oidc_tokens'
-
-// In-memory cache: avoids any localStorage timing issues in WKWebView
-let capacitorTokenCache: CapacitorTokens | null = null
-
 /*
  * Module-scope coalescer for silent renewal. Every caller (middleware, plugins,
  * getAccessToken, accessTokenExpired event) routes through the same in-flight
@@ -26,13 +20,7 @@ let capacitorTokenCache: CapacitorTokens | null = null
  */
 let silentRenewPromise: Promise<RenewedSession | null> | null = null
 
-interface CapacitorTokens {
-  access_token: string
-  refresh_token?: string
-  expires_at: number
-}
-
-/** What a renewal resolves with: the OIDC user on the web, the stored tokens on Capacitor. Callers read the token. */
+/** What a renewal resolves with: the OIDC user. Callers read the token. */
 interface RenewedSession {
   access_token: string
 }
@@ -44,22 +32,6 @@ interface SigninClient {
 
 const isSigninClient = (value: unknown): value is SigninClient =>
   isRecord(value) && typeof value.createSigninRequest === 'function'
-
-const isCapacitorTokens = (value: unknown): value is CapacitorTokens =>
-  isRecord(value) &&
-  typeof value.access_token === 'string' &&
-  typeof value.expires_at === 'number' &&
-  (value.refresh_token === undefined || typeof value.refresh_token === 'string')
-
-/** The Capacitor tokens kept in localStorage, or null when absent, unreadable or not a token record. */
-const parseCapacitorTokens = (stored: string): CapacitorTokens | null => {
-  try {
-    const data: unknown = JSON.parse(stored)
-    return isCapacitorTokens(data) ? data : null
-  } catch {
-    return null
-  }
-}
 
 /*
  * OAuth error codes of a token endpoint that say "try again later", not "this refresh token is no good".
@@ -89,22 +61,10 @@ const isTransient = (err: unknown): boolean => {
   return err.name === 'ErrorTimeout' || TRANSIENT_HTTP_STATUS.test(err.message)
 }
 
-/**
- * Did the backend's token-exchange answer that this refresh token is refused? A client error (400, 401, 403...) is a
- * refusal; no answer at all (offline, a timeout), a server error, a timeout (408) or a rate limit (429) is not.
- */
-const isTokenExchangeRefusal = (err: unknown): boolean => {
-  if (isOffline()) return false
-  const status = isRecord(err) ? err.status : undefined
-  const code = status ?? (isRecord(err) ? err.statusCode : undefined)
-  return typeof code === 'number' && code >= 400 && code < 500 && code !== 408 && code !== 429
-}
-
 /*
  * Cooldown: after a transient failure no new renewal is attempted for this long. Every authenticated request renews
- * once on its token and once more on the 401 that follows, the assistant page polls every 2 s and on Capacitor each
- * renewal is a POST to the rate-limited `/auth/token-exchange` (per IP, shared by all the tablets of a restaurant), so
- * during an outage they would hammer Zitadel / the backend and keep it from recovering. Requests fail fast with the
+ * once on its token and once more on the 401 that follows, the assistant page polls every 2 s, so
+ * during an outage they would hammer Zitadel and keep it from recovering. Requests fail fast with the
  * same "unavailable" error instead. Fixed 30 s (the same as tsb-core), ended early when the browser comes back online.
  */
 const RENEW_COOLDOWN_MS = 30_000
@@ -140,12 +100,9 @@ function assertRenewalsAllowed() {
 
 /**
  * Provides OIDC Authorization Code + PKCE flow via oidc-client-ts.
- * On Capacitor, token storage/retrieval uses a simple localStorage key
- * instead of oidc-client-ts's UserManager (which has complex validation).
  */
 export function useOidc() {
   const config = useRuntimeConfig()
-  const isCapacitor = config.public.appBuild === 'capacitor'
 
   function getUserManager(): UserManager {
     if (userManager) return userManager
@@ -154,35 +111,20 @@ export function useOidc() {
       typeof window === 'undefined' ? undefined : window.location.pathname.split('/')[1]
     const locale = hasText(localeSegment) ? localeSegment : 'fr'
 
-    if (isCapacitor) {
-      const { origin } = window.location
-      userManager = new UserManager({
-        authority: config.public.zitadelAuthority as string,
-        client_id: config.public.zitadelNativeClientId as string,
-        redirect_uri: `${origin}/${locale}/auth/callback`,
-        post_logout_redirect_uri: `${origin}/${locale}`,
-        response_type: 'code',
-        scope: 'openid profile email offline_access urn:zitadel:iam:org:project:roles',
-        automaticSilentRenew: false,
-        userStore: new WebStorageStateStore({ store: localStorage }),
-        stateStore: new WebStorageStateStore({ store: localStorage }),
-      })
-    } else {
-      const baseUrl = (config.public.dashboardBaseUrl as string).replace(/\/+$/u, '')
-      userManager = new UserManager({
-        authority: config.public.zitadelAuthority as string,
-        client_id: config.public.zitadelClientId as string,
-        redirect_uri: `${baseUrl}/${locale}/auth/callback`,
-        post_logout_redirect_uri: `${baseUrl}/${locale}`,
-        response_type: 'code',
-        scope: 'openid profile email offline_access urn:zitadel:iam:org:project:roles',
-        // Off: the background renewal raced with middleware/plugin calls on the same refresh token; Zitadel's rotation logged the loser out mid-session. Renew lazily on navigation and on 401 instead.
-        automaticSilentRenew: false,
-        // Persist tokens across browser close; Zitadel enforces the 30-day idle / 90-day absolute refresh-token TTL.
-        userStore: new WebStorageStateStore({ store: localStorage }),
-        stateStore: new WebStorageStateStore({ store: localStorage }),
-      })
-    }
+    const baseUrl = (config.public.dashboardBaseUrl as string).replace(/\/+$/u, '')
+    userManager = new UserManager({
+      authority: config.public.zitadelAuthority as string,
+      client_id: config.public.zitadelClientId as string,
+      redirect_uri: `${baseUrl}/${locale}/auth/callback`,
+      post_logout_redirect_uri: `${baseUrl}/${locale}`,
+      response_type: 'code',
+      scope: 'openid profile email offline_access urn:zitadel:iam:org:project:roles',
+      // Off: the background renewal raced with middleware/plugin calls on the same refresh token; Zitadel's rotation logged the loser out mid-session. Renew lazily on navigation and on 401 instead.
+      automaticSilentRenew: false,
+      // Persist tokens across browser close; Zitadel enforces the 30-day idle / 90-day absolute refresh-token TTL.
+      userStore: new WebStorageStateStore({ store: localStorage }),
+      stateStore: new WebStorageStateStore({ store: localStorage }),
+    })
 
     userManager.events.addUserLoaded((user) => {
       oidcUser.value = user
@@ -216,14 +158,14 @@ export function useOidc() {
     return userManager
   }
 
-  /** Start the OIDC authorize redirect (web only). */
+  /** Start the OIDC authorize redirect. */
   async function signIn(extraParams?: Record<string, string>) {
     const mgr = getUserManager()
     await mgr.signinRedirect({ extraQueryParams: extraParams })
   }
 
   /**
-   * Capacitor: get authRequestID from Zitadel without navigating away.
+   * Get authRequestID from Zitadel without navigating away.
    * Creates the OIDC authorize URL, sends it to the backend proxy which follows
    * the redirect and extracts the authRequestID.
    */
@@ -246,64 +188,7 @@ export function useOidc() {
     return response.authRequestId
   }
 
-  /**
-   * Capacitor: exchange authorization code for tokens via backend proxy.
-   * Stores tokens in a simple localStorage key (not via oidc-client-ts).
-   */
-  async function exchangeCodeForTokens(code: string): Promise<void> {
-    const mgr = getUserManager()
-    const { settings } = mgr
-
-    // Retrieve PKCE code_verifier from the stored state
-    const { stateStore } = settings
-    const keys = await stateStore.getAllKeys()
-    let codeVerifier = ''
-    for (const key of keys) {
-      const stateStr = await stateStore.get(key)
-      if (hasText(stateStr)) {
-        try {
-          const stateData: unknown = JSON.parse(stateStr)
-          const verifier = isRecord(stateData) ? stateData.code_verifier : undefined
-          if (typeof verifier === 'string' && verifier !== '') {
-            codeVerifier = verifier
-            await stateStore.remove(key)
-            break
-          }
-        } catch {
-          /* Skip invalid entries */
-        }
-      }
-    }
-
-    // Exchange code via backend proxy (avoids CORS with Zitadel token endpoint)
-    const apiUrl = config.public.api as string
-    const tokens = await $fetch<{
-      access_token: string
-      expires_in: number
-      refresh_token?: string
-    }>(`${apiUrl}/auth/token-exchange`, {
-      method: 'POST',
-      body: {
-        code,
-        redirectUri: settings.redirect_uri || '',
-        clientId: settings.client_id,
-        codeVerifier,
-      },
-    })
-
-    // Store tokens in simple localStorage key
-    const tokenData: CapacitorTokens = {
-      access_token: tokens.access_token,
-      refresh_token: tokens.refresh_token,
-      expires_at: Math.floor(Date.now() / 1000) + (tokens.expires_in || 3600),
-    }
-    // Store in both memory and localStorage
-    capacitorTokenCache = tokenData
-    localStorage.setItem(CAPACITOR_TOKEN_KEY, JSON.stringify(tokenData))
-    forgetRenewalFailure()
-  }
-
-  /** Complete the OIDC callback (web only: exchange code for tokens). */
+  /** Complete the OIDC callback: exchange the code for tokens. */
   async function handleCallback(): Promise<OidcUser> {
     const mgr = getUserManager()
     const user = await mgr.signinRedirectCallback()
@@ -312,43 +197,9 @@ export function useOidc() {
     return user
   }
 
-  /** Capacitor: process deep link callback URL. */
-  async function handleDeepLinkCallback(url: string): Promise<OidcUser> {
-    const mgr = getUserManager()
-    const user = await mgr.signinRedirectCallback(url)
-    forgetRenewalFailure()
-    oidcUser.value = user
-    return user
-  }
-
   /** Get the current access token (or null if not authenticated). */
   async function getAccessToken(): Promise<string | null> {
-    // Check in-memory cache first (fastest, no async)
-    const now = Math.floor(Date.now() / 1000)
-    if (capacitorTokenCache && capacitorTokenCache.expires_at > now) {
-      return capacitorTokenCache.access_token
-    }
-
-    // Then check localStorage (survives app restart)
-    if (typeof localStorage !== 'undefined') {
-      const stored = localStorage.getItem(CAPACITOR_TOKEN_KEY)
-      if (hasText(stored)) {
-        // Invalid data is skipped.
-        const data = parseCapacitorTokens(stored)
-        if (data !== null && data.expires_at > now) {
-          capacitorTokenCache = data
-          return data.access_token
-        }
-      }
-    }
-
     try {
-      // Capacitor: token expired, attempt refresh
-      if (isCapacitor) {
-        const renewed = await silentRenew()
-        return renewed?.access_token ?? null
-      }
-      // Web: use oidc-client-ts UserManager
       const mgr = getUserManager()
       const user = await mgr.getUser()
       if (user && user.expired !== true) return user.access_token
@@ -404,52 +255,6 @@ export function useOidc() {
   }
 
   async function attemptRenewal(): Promise<RenewedSession | null> {
-    if (isCapacitor) {
-      // Read stored refresh token
-      const stored = localStorage.getItem(CAPACITOR_TOKEN_KEY)
-      if (!hasText(stored)) return null
-      const data = parseCapacitorTokens(stored)
-      if (data === null) return null
-      const { refresh_token: refreshToken } = data
-      if (!hasText(refreshToken)) return null
-      assertRenewalsAllowed()
-
-      // Exchange refresh token via backend proxy
-      const apiUrl = config.public.api as string
-      let tokens: { access_token: string; expires_in: number; refresh_token?: string }
-      try {
-        tokens = await $fetch<{
-          access_token: string
-          expires_in: number
-          refresh_token?: string
-        }>(`${apiUrl}/auth/token-exchange`, {
-          method: 'POST',
-          body: {
-            refreshToken,
-            clientId: config.public.zitadelNativeClientId as string,
-          },
-        })
-      } catch (err) {
-        // A refused refresh token ends the session; an unreachable backend does not.
-        if (isTokenExchangeRefusal(err)) return null
-        throw blockRenewals(err)
-      }
-
-      // Update stored tokens (use new refresh_token if rotated, else keep old)
-      const tokenData: CapacitorTokens = {
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token ?? refreshToken,
-        expires_at: Math.floor(Date.now() / 1000) + (tokens.expires_in || 3600),
-      }
-      try {
-        capacitorTokenCache = tokenData
-        localStorage.setItem(CAPACITOR_TOKEN_KEY, JSON.stringify(tokenData))
-      } catch {
-        return null
-      }
-
-      return tokenData
-    }
     const mgr = getUserManager()
     const existing = await mgr.getUser()
     if (!existing) return null // No session to renew
@@ -480,29 +285,15 @@ export function useOidc() {
     return null
   }
 
-  /** Sign out via OIDC end-session endpoint (web only). */
+  /** Sign out via OIDC end-session endpoint. */
   async function signOut() {
     forgetRenewalFailure()
     const mgr = getUserManager()
     await mgr.signoutRedirect()
   }
 
-  /** Capacitor: clear local tokens without browser redirect. */
-  function logoutCapacitor() {
-    forgetRenewalFailure()
-    capacitorTokenCache = null
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem(CAPACITOR_TOKEN_KEY)
-    }
-    oidcUser.value = null
-  }
-
   /** Check if the user has a valid (non-expired) session. */
   async function isAuthenticated(): Promise<boolean> {
-    if (isCapacitor) {
-      const token = await getAccessToken()
-      return token !== null
-    }
     const mgr = getUserManager()
     const user = await mgr.getUser()
     return user !== null && user.expired !== true
@@ -525,14 +316,11 @@ export function useOidc() {
     oidcUser,
     signIn,
     getAuthRequestId,
-    exchangeCodeForTokens,
     handleCallback,
-    handleDeepLinkCallback,
     getAccessToken,
     silentRenew,
     isRenewalUnavailable,
     signOut,
-    logoutCapacitor,
     isAuthenticated,
     getUser,
     removeUser,

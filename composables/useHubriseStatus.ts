@@ -1,7 +1,5 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useNuxtApp, useState } from '#imports'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import type { HubriseStatus } from '~/utils/hubrise'
 
 /** The publish block of a HubriseStatus (also selected by the publish mutations). */
@@ -80,13 +78,13 @@ export const HUBRISE_STATUS_FIELDS = `
   }
 `
 
-const GET_STATUS = print(gql`
+const GET_STATUS = /* GraphQL */ `
   query HubriseStatus {
     hubriseStatus {
       ${HUBRISE_STATUS_FIELDS}
     }
   }
-`)
+`
 
 const STATUS_KEY = 'pili-hubrise-status'
 

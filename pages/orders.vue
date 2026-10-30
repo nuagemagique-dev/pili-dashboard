@@ -427,7 +427,7 @@
     >
       <template v-if="selectedOrder" #body>
         <div class="space-y-5">
-          <!-- 1. Header: identity + status + print -->
+          <!-- 1. Header: identity + status -->
           <div class="flex items-start justify-between">
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1">
@@ -454,25 +454,6 @@
                   {{ t(`orders.status.${selectedOrder.status?.toLowerCase()}`) }}
                 </UBadge>
               </div>
-            </div>
-            <div class="flex shrink-0">
-              <UButton
-                icon="i-lucide-printer"
-                :label="t('orders.print.label')"
-                color="neutral"
-                size="lg"
-                class="rounded-r-none"
-                @click="printBoth"
-              />
-              <UDropdownMenu :items="printMenuItems">
-                <UButton
-                  icon="i-lucide-chevron-down"
-                  color="neutral"
-                  size="lg"
-                  class="rounded-l-none border-l border-default"
-                  square
-                />
-              </UDropdownMenu>
             </div>
           </div>
 
@@ -828,24 +809,6 @@
         </button>
       </div>
     </PiliBottomSheet>
-
-    <!-- Two-step print: tear kitchen ticket, then continue to client ticket -->
-    <UModal
-      v-model:open="showPrintContinueDialog"
-      :title="t('orders.printContinueTitle')"
-      :description="t('orders.printContinueMessage')"
-      :dismissible="false"
-      :ui="{ footer: 'flex justify-end gap-2' }"
-    >
-      <template #footer>
-        <UButton color="neutral" variant="solid" @click="cancelContinueClientPrint">
-          {{ t('orders.back') }}
-        </UButton>
-        <UButton color="primary" icon="i-lucide-printer" @click="continueToClientPrint">
-          {{ t('orders.printContinueCta') }}
-        </UButton>
-      </template>
-    </UModal>
   </div>
 </template>
 
@@ -883,7 +846,7 @@ import {
 import { centsToEuros, toCents } from '~/utils/money'
 import HubriseOrderBadges from '~/components/hubrise/OrderBadges.vue'
 import HubriseOrderPanel from '~/components/hubrise/OrderPanel.vue'
-import { orderHubriseFields } from '~/utils/hubrise'
+import { HUBRISE_ORDER_FIELDS, orderDocument } from '~/utils/hubrise'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
   brusselsDateISO,
@@ -892,8 +855,6 @@ import {
   formatTimeOnly,
   shiftBrusselsDate,
 } from '~/utils/utils'
-import gql from 'graphql-tag'
-import { print } from 'graphql'
 import { useI18n } from 'vue-i18n'
 
 const { t, locale } = useI18n()
@@ -935,11 +896,6 @@ const {
   confirmDisabled,
   confirmCancellation,
   cancelCancellation,
-  printBoth,
-  showPrintContinueDialog,
-  continueToClientPrint,
-  cancelContinueClientPrint,
-  printMenuItems,
 } = useOrderActions({
   onDone: () => {
     showOrderDetails.value = false
@@ -1128,9 +1084,9 @@ const paymentChip = (order: Order, detail = false) => buildPaymentChip(order, t,
 // HubRise: the state of each order is asked only where the server has the integration (an older server would refuse it).
 const { status: hubriseStatus, reload: loadHubriseStatus } = useHubriseStatus()
 if (hubriseStatus.value === null) await loadHubriseStatus()
-const hubriseFields = orderHubriseFields(hubriseStatus.value)
+const withHubrise = (document: string): string => orderDocument(document, hubriseStatus.value)
 
-const ORDERS_QUERY = gql`
+const ORDERS_QUERY = withHubrise(/* GraphQL */ `
   query {
     orders {
       id
@@ -1195,10 +1151,10 @@ const ORDERS_QUERY = gql`
           name
         }
       }
-      ${hubriseFields}
+      ${HUBRISE_ORDER_FIELDS}
     }
   }
-`
+`)
 
 const { data: dataOrders, pending } = await useGqlQuery<{ orders: Order[] }>(
   ORDERS_QUERY,
@@ -1232,7 +1188,7 @@ watch(
 const { data: orderUpdated } = useGqlSubscription<{
   orderUpdated: Partial<Order>
 }>(
-  print(gql`
+  withHubrise(/* GraphQL */ `
     subscription {
       orderUpdated {
         id
@@ -1242,7 +1198,7 @@ const { data: orderUpdated } = useGqlSubscription<{
         payment {
           status
         }
-        ${hubriseFields}
+        ${HUBRISE_ORDER_FIELDS}
       }
     }
   `),
@@ -1259,7 +1215,7 @@ watch(orderUpdated, (val) => {
 const { data: orderCreated } = useGqlSubscription<{
   orderCreated: Order
 }>(
-  print(gql`
+  withHubrise(/* GraphQL */ `
     subscription {
       orderCreated {
         id
@@ -1324,7 +1280,7 @@ const { data: orderCreated } = useGqlSubscription<{
             name
           }
         }
-        ${hubriseFields}
+        ${HUBRISE_ORDER_FIELDS}
       }
     }
   `),

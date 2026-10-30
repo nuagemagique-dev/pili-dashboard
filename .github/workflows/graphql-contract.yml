@@ -1,0 +1,61 @@
+name: GraphQL contract
+
+# Fails when an operation this app sends no longer matches the backend schema
+# (unknown field, wrong variable type, ...), or when a query-like string is not
+# marked with /* GraphQL */ and would escape the check. The schema is the
+# committed contract/schema.graphql of pili-api (main), so a backend change that
+# breaks this app also fails here the next day (schedule) even when the backend
+# repo's own guard was bypassed. See docs/contract/README.md in pili-api.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Operations match the backend schema
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          # Nothing of the project is installed here: no dependency cache.
+          package-manager-cache: false
+
+      # Only graphql and typescript are needed: install the versions the lockfile
+      # pins into a scratch directory instead of the whole Nuxt workspace.
+      - name: Install the checker's two dependencies
+        run: |
+          tools="$RUNNER_TEMP/gql-tools"
+          mkdir -p "$tools"
+          gql=$(sed -nE 's/^  graphql@([^:(]+):$/\1/p' pnpm-lock.yaml | sort -u)
+          ts=$(sed -nE 's/^  typescript@([^:(]+):$/\1/p' pnpm-lock.yaml | sort -u)
+          [ -n "$gql" ] && [ "$(wc -l <<<"$gql")" -eq 1 ] || { echo "::error::expected one graphql version in pnpm-lock.yaml, got: $gql"; exit 1; }
+          [ -n "$ts" ] && [ "$(wc -l <<<"$ts")" -eq 1 ] || { echo "::error::expected one typescript version in pnpm-lock.yaml, got: $ts"; exit 1; }
+          # Plain npm in a scratch directory outside the project (its devEngines
+          # only bind inside it).
+          npm install --prefix "$tools" --no-audit --no-fund --ignore-scripts "graphql@$gql" "typescript@$ts"
+          cp scripts/check-graphql-operations.mjs "$tools/"
+          echo "GQL_TOOLS=$tools" >> "$GITHUB_ENV"
+
+      - name: Fetch the backend schema (pili-api main)
+        run: |
+          curl -fsSL --retry 4 --retry-delay 5 --retry-all-errors \
+            -o "$RUNNER_TEMP/schema.graphql" \
+            https://raw.githubusercontent.com/nuagemagique-dev/pili-api/main/contract/schema.graphql
+
+      - name: Validate every GraphQL operation against it
+        run: node "$GQL_TOOLS/check-graphql-operations.mjs" --root . --schema "$RUNNER_TEMP/schema.graphql"

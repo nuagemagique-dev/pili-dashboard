@@ -6,7 +6,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { mockNuxtImport } from '@nuxt/test-utils/runtime'
 import { useRuntimeConfig } from '#imports'
-import gql from 'graphql-tag'
 import { consumeReturnTo } from '~/utils/authReturn'
 import { SilentRenewUnavailableError } from '~/utils/silentRenewError'
 import { setFlags } from '../support/flags'
@@ -99,9 +98,9 @@ describe('the request (browser)', () => {
     })
   })
 
-  it('prints a parsed document and sends empty variables when none are given', async () => {
+  it('sends empty variables when none are given', async () => {
     $fetchMock.mockResolvedValue(ok({}))
-    await install()(gql`
+    await install()(`
       query OrderList {
         orders {
           id
@@ -110,7 +109,7 @@ describe('the request (browser)', () => {
     `)
     const [, { body }] = $fetchMock.mock.calls[0]!
     expect(body.variables).toEqual({})
-    expect(body.query).toMatch(/^query OrderList \{\s+orders \{\s+id\s+\}\s+\}\s*$/u)
+    expect(body.query).toContain('query OrderList')
   })
 
   it('sends no Authorization header without a session', async () => {

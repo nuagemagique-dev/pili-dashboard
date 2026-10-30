@@ -6,7 +6,7 @@ const root = (path: string) => resolve(import.meta.dirname, path)
 const excluded = ['**/node_modules/**', '**/.nuxt/**', '**/.output/**']
 
 // The files of the critical flows (auth, the GraphQL client, the orders store and the order actions and logic, money,
-// receipt printing, the date helpers) must not regress, whatever the rest gains: each is held at the level it reaches
+// the date helpers) must not regress, whatever the rest gains: each is held at the level it reaches
 // today, 100 % lines, statements, functions and branches, except the few arms of utils/utils.ts measured below 100
 // (listed in docs/testing.md). Only ever raise them.
 const full = { statements: 100, branches: 100, functions: 100, lines: 100 }
@@ -19,12 +19,10 @@ const criticalFiles = {
   'composables/useGqlMutation.ts': full,
   'composables/useGqlSubscription.ts': full,
   'composables/useOrderActions.ts': full,
-  'composables/useSunmiPrinter.ts': full,
   'composables/useHubriseStatus.ts': full,
   'composables/useHubriseSettings.ts': full,
   'composables/useHubriseCatalog.ts': full,
   'composables/useHubrisePublish.ts': full,
-  'composables/usePushNotifications.ts': full,
   'stores/auth.ts': full,
   'stores/orders.ts': full,
   'middleware/auth.global.ts': full,
@@ -80,9 +78,6 @@ export default defineConfig({
         '**/*.test.*',
         '**/*.d.ts',
         '**/*.config.ts',
-        'plugins/capacitor-sunmi-printer/android/**',
-        // Interfaces only, no runtime code.
-        'plugins/capacitor-sunmi-printer/src/definitions.ts',
       ],
       reporter: ['text-summary', 'json-summary', 'lcov'],
       reportsDirectory: 'coverage',
@@ -103,7 +98,15 @@ export default defineConfig({
   fmt: {
     singleQuote: true,
     semi: false,
-    ignorePatterns: ['.claude/**', 'android/**', '**/android/**', 'public/**', 'coverage/**'],
+    ignorePatterns: [
+      '.claude/**',
+      'android/**',
+      '**/android/**',
+      'public/**',
+      'coverage/**',
+      'playwright-report/**',
+      'test-results/**',
+    ],
   },
   lint: {
     plugins: ['typescript', 'vue'],
@@ -154,7 +157,8 @@ export default defineConfig({
     overrides: [
       {
         // Tests cast to fakes, build partial objects and read `any` from mocks: these rules are noise there, and only there.
-        files: ['tests/**/*.ts'],
+        // The Playwright specs, their helpers and the mock backend (e2e/) are test code too.
+        files: ['tests/**/*.ts', 'e2e/**/*.ts', 'playwright.config.ts'],
         rules: {
           'typescript/prefer-readonly-parameter-types': 'off',
           'typescript/no-unsafe-type-assertion': 'off',
@@ -184,10 +188,11 @@ export default defineConfig({
       '.nuxt',
       '.output',
       'node_modules',
-      'android/**/build',
-      'android/app/src/main/assets/public',
-      'android/capacitor-cordova-android-plugins',
+      // Plain-JS tool copied verbatim into pili-shop and pili-mobile (see its header): not held to this app's rules.
+      'scripts/check-graphql-operations.mjs',
       'coverage',
+      'playwright-report',
+      'test-results',
     ],
     options: {
       typeAware: true,

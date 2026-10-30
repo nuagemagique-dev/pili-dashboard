@@ -1,37 +1,81 @@
 version: 2
+# Daily checks. "CI watch" merges a green minor/patch PR (majors wait for a
+# human) and "Nightly dependency release" ships the merges to production.
+# cooldown: version updates wait until a release is 3 days old (hijacked
+# releases are usually pulled within hours); security updates are immediate.
 updates:
   - package-ecosystem: 'npm'
     directory: '/'
     schedule:
-      interval: 'weekly'
-      day: 'friday'
-      time: '12:00'
+      interval: 'daily'
+      time: '06:00'
       timezone: 'Europe/Brussels'
+    cooldown:
+      default-days: 3
     ignore:
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
       # TypeScript 7 (native compiler) drops typescript/lib/tsc, which vue-tsc still loads.
       - dependency-name: 'typescript'
         update-types: ['version-update:semver-major']
-      # Peer-pinned to the vitest that vite-plus bundles: bump it together with vite-plus, never alone.
+      # Pinned to the vitest that vite-plus bundles: bump them together with vite-plus, never alone.
       - dependency-name: '@vitest/coverage-v8'
+      - dependency-name: 'vitest'
     groups:
+      # Security fixes, opened as soon as an advisory lands (no cooldown).
+      security:
+        applies-to: security-updates
+        patterns:
+          - '*'
       # Vite+ ships its own oxc/rolldown/vitest binaries; bump the CLI and its platform packages together.
-      # A bump also needs the `overrides.vite` pin (vite-plus-core) and @vitest/coverage-v8 moved by hand.
+      # Dependabot cannot move the `vite` alias (vite-plus-core) nor @vitest/coverage-v8 and vitest:
+      # .github/workflows/dependabot-vite-plus.yml pushes that commit on the PR, then CI watch merges it when green.
       vite-plus:
         patterns:
           - 'vite-plus'
           - '@voidzero-dev/*'
-      capacitor:
-        patterns:
-          - '@capacitor/*'
+      # Every other non-major bump in one daily PR: one CI run instead of one per
+      # package. Majors still get their own PR. Groups above take precedence.
+      minor-and-patch:
+        update-types:
+          - 'minor'
+          - 'patch'
   - package-ecosystem: 'docker'
     directory: '/'
     schedule:
-      interval: 'weekly'
-      day: 'friday'
-      time: '12:00'
+      interval: 'daily'
+      time: '06:00'
       timezone: 'Europe/Brussels'
+    cooldown:
+      default-days: 3
+    groups:
+      # Security fixes, opened as soon as an advisory lands (no cooldown).
+      security:
+        applies-to: security-updates
+        patterns:
+          - '*'
     ignore:
       - dependency-name: 'node'
         update-types: ['version-update:semver-major']
+  # Actions are pinned to commit SHAs; Dependabot bumps the SHA and the
+  # version comment together.
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+      time: '06:00'
+      timezone: 'Europe/Brussels'
+    cooldown:
+      default-days: 3
+    groups:
+      # Security fixes, opened as soon as an advisory lands (no cooldown).
+      security:
+        applies-to: security-updates
+        patterns:
+          - '*'
+      actions:
+        patterns:
+          - '*'
+        update-types:
+          - 'minor'
+          - 'patch'
