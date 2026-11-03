@@ -342,6 +342,7 @@
     "coupons": "Coupons",
     "booking": "Réservation",
     "settings": "Paramètres",
+    "terminals": "Terminaux",
     "logout": "Déconnexion",
     "more": "Plus",
     "assistant": "Assistant"
@@ -544,6 +545,48 @@
       "unavailable": "Le service de l'assistant ne répond pas pour le moment. Réessayez plus tard.",
       "limitReached": "Toutes les places sont prises, retirez d'abord un compte.",
       "notFound": "Ce compte ou ce lien n'existe plus, rafraîchissez la page."
+    }
+  },
+  "terminals": {
+    "title": "Terminaux",
+    "description": "Les terminaux de poche (Sunmi) qui reçoivent les commandes de ce restaurant. Un terminal révoqué est coupé immédiatement.",
+    "loading": "Chargement des terminaux…",
+    "loadFailed": "Impossible de charger les terminaux.",
+    "retry": "Réessayer",
+    "empty": "Aucun terminal enregistré. Ajoutez-en un pour l'associer à ce restaurant.",
+    "registered": "Ajouté le {date}",
+    "lastSeen": "Vu {time}",
+    "neverSeen": "Jamais connecté",
+    "status": {
+      "active": "Actif",
+      "revoked": "Révoqué le {date}"
+    },
+    "add": {
+      "button": "Ajouter un terminal",
+      "title": "Ajouter un terminal",
+      "label": "Nom du terminal",
+      "labelPlaceholder": "Comptoir",
+      "labelHint": "Donnez un nom au terminal pour le reconnaître dans la liste.",
+      "createCode": "Créer le code",
+      "instructions": "Sur le terminal, touchez « Scanner le QR code » et visez ce code, ou saisissez le serveur et le code à la main. Le code ne sert qu'une fois.",
+      "code": "Code",
+      "server": "Serveur",
+      "qrAlt": "QR code d'enregistrement du terminal",
+      "expiresIn": "Expire dans {time}",
+      "expired": "Code expiré",
+      "newCode": "Nouveau code"
+    },
+    "revoke": {
+      "button": "Révoquer",
+      "title": "Révoquer « {label} » ?",
+      "message": "Le terminal est déconnecté immédiatement et ne reçoit plus de commandes. Pour le réutiliser, il faudra l'enregistrer à nouveau.",
+      "confirm": "Révoquer"
+    },
+    "errors": {
+      "invalidLabel": "Le nom doit compter entre 1 et 64 caractères.",
+      "createFailed": "Impossible de créer le code. Réessayez.",
+      "notFound": "Ce terminal n'existe plus.",
+      "revokeFailed": "Impossible de révoquer le terminal. Réessayez."
     }
   }
 }

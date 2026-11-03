@@ -342,6 +342,7 @@
     "coupons": "优惠券",
     "booking": "预订",
     "settings": "设置",
+    "terminals": "终端",
     "logout": "登出",
     "more": "更多",
     "assistant": "助手"
@@ -544,6 +545,48 @@
       "unavailable": "助手服务暂时没有响应，请稍后再试。",
       "limitReached": "名额已满，请先移除一个账号。",
       "notFound": "找不到这个账号或链接，请刷新页面。"
+    }
+  },
+  "terminals": {
+    "title": "终端",
+    "description": "接收本餐厅订单的手持终端（商米）。被撤销的终端会立即断开。",
+    "loading": "正在加载终端…",
+    "loadFailed": "无法加载终端。",
+    "retry": "重试",
+    "empty": "尚未登记任何终端。添加一台终端以将其绑定到本餐厅。",
+    "registered": "添加于 {date}",
+    "lastSeen": "最近在线：{time}",
+    "neverSeen": "从未连接",
+    "status": {
+      "active": "已启用",
+      "revoked": "已于 {date} 撤销"
+    },
+    "add": {
+      "button": "添加终端",
+      "title": "添加终端",
+      "label": "终端名称",
+      "labelPlaceholder": "前台",
+      "labelHint": "为终端命名，以便在列表中识别。",
+      "createCode": "生成代码",
+      "instructions": "在终端上点击“扫描二维码”并对准此码，或手动输入服务器和代码。代码只能使用一次。",
+      "code": "代码",
+      "server": "服务器",
+      "qrAlt": "终端登记二维码",
+      "expiresIn": "{time} 后过期",
+      "expired": "代码已过期",
+      "newCode": "新代码"
+    },
+    "revoke": {
+      "button": "撤销",
+      "title": "撤销“{label}”？",
+      "message": "终端将立即断开，不再接收订单。如需再次使用，必须重新登记。",
+      "confirm": "撤销"
+    },
+    "errors": {
+      "invalidLabel": "名称长度须为 1 到 64 个字符。",
+      "createFailed": "无法生成代码，请重试。",
+      "notFound": "该终端已不存在。",
+      "revokeFailed": "无法撤销终端，请重试。"
     }
   }
 }

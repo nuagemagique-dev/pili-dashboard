@@ -342,6 +342,7 @@
     "coupons": "Kortingscodes",
     "booking": "Reservering",
     "settings": "Instellingen",
+    "terminals": "Terminals",
     "logout": "Uitloggen",
     "more": "Meer",
     "assistant": "Assistent"
@@ -544,6 +545,48 @@
       "unavailable": "De assistent-service antwoordt momenteel niet. Probeer het later opnieuw.",
       "limitReached": "Alle plaatsen zijn bezet, verwijder eerst een account.",
       "notFound": "Dit account of deze link bestaat niet meer, ververs de pagina."
+    }
+  },
+  "terminals": {
+    "title": "Terminals",
+    "description": "De handterminals (Sunmi) die de bestellingen van dit restaurant ontvangen. Een ingetrokken terminal wordt meteen afgesloten.",
+    "loading": "Terminals laden…",
+    "loadFailed": "De terminals konden niet worden geladen.",
+    "retry": "Opnieuw proberen",
+    "empty": "Nog geen terminal geregistreerd. Voeg er een toe om hem aan dit restaurant te koppelen.",
+    "registered": "Toegevoegd op {date}",
+    "lastSeen": "Gezien {time}",
+    "neverSeen": "Nooit verbonden",
+    "status": {
+      "active": "Actief",
+      "revoked": "Ingetrokken op {date}"
+    },
+    "add": {
+      "button": "Terminal toevoegen",
+      "title": "Terminal toevoegen",
+      "label": "Naam van de terminal",
+      "labelPlaceholder": "Toog",
+      "labelHint": "Geef de terminal een naam om hem in de lijst te herkennen.",
+      "createCode": "Code aanmaken",
+      "instructions": "Tik op de terminal op \"QR-code scannen\" en richt op deze code, of typ de server en de code met de hand. De code werkt maar één keer.",
+      "code": "Code",
+      "server": "Server",
+      "qrAlt": "QR-code om de terminal te registreren",
+      "expiresIn": "Verloopt over {time}",
+      "expired": "Code verlopen",
+      "newCode": "Nieuwe code"
+    },
+    "revoke": {
+      "button": "Intrekken",
+      "title": "\"{label}\" intrekken?",
+      "message": "De terminal wordt meteen afgesloten en ontvangt geen bestellingen meer. Om hem opnieuw te gebruiken, moet hij opnieuw worden geregistreerd.",
+      "confirm": "Intrekken"
+    },
+    "errors": {
+      "invalidLabel": "De naam moet 1 tot 64 tekens lang zijn.",
+      "createFailed": "De code kon niet worden aangemaakt. Probeer opnieuw.",
+      "notFound": "Deze terminal bestaat niet meer.",
+      "revokeFailed": "De terminal kon niet worden ingetrokken. Probeer opnieuw."
     }
   }
 }

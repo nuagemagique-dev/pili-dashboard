@@ -109,6 +109,7 @@ import type { NavigationMenuItem } from '#ui/types'
 const { locale, t } = useI18n()
 const route = useRoute()
 const ordersStore = useOrdersStore()
+const authStore = useAuthStore()
 
 const isMobile = useIsMobile()
 const { visible: tabBarVisible } = useTabBar()
@@ -164,13 +165,15 @@ const navigationItems = computed<NavigationMenuItem[][]>(() => {
       item(t('navigation.customers'), 'i-lucide-users', 'customers'),
       item(t('navigation.coupons'), 'i-lucide-ticket', 'coupons'),
       item(t('navigation.settings'), 'i-lucide-settings', 'settings'),
+      ...(authStore.user?.isAdmin
+        ? [item(t('navigation.terminals'), 'i-lucide-tablet-smartphone', 'terminals')]
+        : []),
       item(t('navigation.assistant'), 'i-lucide-message-circle', 'assistant'),
     ],
   ]
 })
 
 const handleLogout = async () => {
-  const authStore = useAuthStore()
   await authStore.logout()
 }
 </script>

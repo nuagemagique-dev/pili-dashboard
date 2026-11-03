@@ -125,6 +125,9 @@ const items = computed(() => [
           ? t('more.online')
           : t('more.paused'),
   },
+  ...(authStore.user?.isAdmin
+    ? [{ to: '/terminals', label: t('navigation.terminals'), hint: '' }]
+    : []),
   {
     to: '/assistant',
     label: t('navigation.assistant'),
