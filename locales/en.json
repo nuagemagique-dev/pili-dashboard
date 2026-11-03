@@ -342,6 +342,7 @@
     "coupons": "Coupons",
     "booking": "Booking",
     "settings": "Settings",
+    "terminals": "Terminals",
     "logout": "Logout",
     "more": "More",
     "assistant": "Assistant"
@@ -544,6 +545,48 @@
       "unavailable": "The assistant service is not answering right now. Try again later.",
       "limitReached": "All places are taken, remove an account first.",
       "notFound": "This account or link no longer exists, refresh the page."
+    }
+  },
+  "terminals": {
+    "title": "Terminals",
+    "description": "The handheld terminals (Sunmi) that receive this restaurant's orders. A revoked terminal is cut off at once.",
+    "loading": "Loading terminals…",
+    "loadFailed": "Could not load the terminals.",
+    "retry": "Retry",
+    "empty": "No terminal registered yet. Add one to link it to this restaurant.",
+    "registered": "Added {date}",
+    "lastSeen": "Seen {time}",
+    "neverSeen": "Never connected",
+    "status": {
+      "active": "Active",
+      "revoked": "Revoked {date}"
+    },
+    "add": {
+      "button": "Add a terminal",
+      "title": "Add a terminal",
+      "label": "Terminal name",
+      "labelPlaceholder": "Counter",
+      "labelHint": "Give the terminal a name to recognise it in the list.",
+      "createCode": "Create code",
+      "instructions": "On the terminal, tap \"Scan QR code\" and point it at this code, or type the server and the code by hand. The code works only once.",
+      "code": "Code",
+      "server": "Server",
+      "qrAlt": "Terminal enrollment QR code",
+      "expiresIn": "Expires in {time}",
+      "expired": "Code expired",
+      "newCode": "New code"
+    },
+    "revoke": {
+      "button": "Revoke",
+      "title": "Revoke \"{label}\"?",
+      "message": "The terminal is disconnected at once and stops receiving orders. To use it again, it must be enrolled again.",
+      "confirm": "Revoke"
+    },
+    "errors": {
+      "invalidLabel": "The name must be 1 to 64 characters long.",
+      "createFailed": "Could not create the code. Try again.",
+      "notFound": "This terminal no longer exists.",
+      "revokeFailed": "Could not revoke the terminal. Try again."
     }
   }
 }
