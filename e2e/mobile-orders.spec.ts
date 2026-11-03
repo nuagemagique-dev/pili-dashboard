@@ -64,7 +64,7 @@ test.describe('orders (phone)', () => {
   }) => {
     await card(page, 'Alice Martin').click()
     await expect(page).toHaveURL(/\/fr\/orders\/order-pending$/u)
-    await page.getByRole('button', { name: message('orders.status.preparing') }).click()
+    await page.getByRole('button', { name: message('orders.nextAction.preparing') }).click()
 
     await expect(page).toHaveURL(/\/fr\/orders$/u)
     const [call] = await mock.operations('updateOrder')
