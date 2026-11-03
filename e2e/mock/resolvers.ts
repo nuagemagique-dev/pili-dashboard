@@ -10,8 +10,6 @@ import { type Json, productOf } from './state.ts'
 function allowedNext(status: string, type: string): string[] {
   switch (status) {
     case 'PENDING':
-      return ['CONFIRMED', 'PREPARING', 'CANCELLED']
-    case 'CONFIRMED':
       return ['PREPARING', 'CANCELLED']
     case 'PREPARING':
       return ['AWAITING_PICK_UP', 'CANCELLED']

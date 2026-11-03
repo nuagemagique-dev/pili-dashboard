@@ -134,11 +134,11 @@ describe('reactive variables', () => {
     const filter = ref({ status: 'PENDING' })
     await useGqlQuery(doc(), () => ({ filter: filter.value }))
 
-    filter.value.status = 'CONFIRMED'
+    filter.value.status = 'PREPARING'
     await nextTick()
     await settle()
 
-    expect(gqlFetch.mock.calls[1]![1]).toEqual({ variables: { filter: { status: 'CONFIRMED' } } })
+    expect(gqlFetch.mock.calls[1]![1]).toEqual({ variables: { filter: { status: 'PREPARING' } } })
   })
 
   it('lets the latest variables win when an earlier request answers late', async () => {

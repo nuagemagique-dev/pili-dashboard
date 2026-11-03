@@ -36,7 +36,6 @@ const inMinutes = (minutes: number) => new Date(NOW.getTime() + minutes * 60_000
 
 const ALL_STATUSES: OrderStatus[] = [
   'PENDING',
-  'CONFIRMED',
   'PREPARING',
   'AWAITING_PICK_UP',
   'OUT_FOR_DELIVERY',
@@ -87,9 +86,8 @@ afterEach(() => {
 
 describe('getAllowedStatuses: the order workflow', () => {
   it.each<[OrderStatus, OrderType, OrderStatus[]]>([
-    ['PENDING', 'DELIVERY', ['CONFIRMED', 'PREPARING', 'CANCELLED']],
-    ['PENDING', 'PICKUP', ['CONFIRMED', 'PREPARING', 'CANCELLED']],
-    ['CONFIRMED', 'DELIVERY', ['PREPARING', 'CANCELLED']],
+    ['PENDING', 'DELIVERY', ['PREPARING', 'CANCELLED']],
+    ['PENDING', 'PICKUP', ['PREPARING', 'CANCELLED']],
     ['PREPARING', 'PICKUP', ['AWAITING_PICK_UP', 'CANCELLED']],
     ['AWAITING_PICK_UP', 'DELIVERY', ['OUT_FOR_DELIVERY', 'CANCELLED']],
     ['AWAITING_PICK_UP', 'PICKUP', ['PICKED_UP', 'FAILED', 'CANCELLED']],
@@ -118,13 +116,13 @@ describe('getAllowedStatuses: the order workflow', () => {
   it('returns a fresh list each time, so callers cannot corrupt the workflow', () => {
     const first = getAllowedStatuses('PENDING', 'PICKUP')
     first.push('FAILED')
-    expect(getAllowedStatuses('PENDING', 'PICKUP')).toEqual(['CONFIRMED', 'PREPARING', 'CANCELLED'])
+    expect(getAllowedStatuses('PENDING', 'PICKUP')).toEqual(['PREPARING', 'CANCELLED'])
   })
 })
 
 describe('status helpers', () => {
   it('isActiveStatus: only the orders still to prepare', () => {
-    expect(ALL_STATUSES.filter(isActiveStatus)).toEqual(['PENDING', 'CONFIRMED', 'PREPARING'])
+    expect(ALL_STATUSES.filter(isActiveStatus)).toEqual(['PENDING', 'PREPARING'])
   })
 
   it('has a chip tone for every status', () => {
@@ -172,7 +170,7 @@ describe('the selected order and its statuses', () => {
     const { actions, store } = setup()
     store.addOrder(makeOrder({ id: 'o-new', status: 'PENDING' }))
     expect(store.unacknowledgedPendingCount).toBe(1)
-    actions.handleStatusButton('CONFIRMED')
+    actions.handleStatusButton('PREPARING')
 
     actions.selectOrder(store.orders[0]!)
 
@@ -184,8 +182,8 @@ describe('the selected order and its statuses', () => {
 
   it('handleStatusButton stages a status, and un-stages it when pressed again', () => {
     const { actions } = setup()
-    actions.handleStatusButton('CONFIRMED')
-    expect(actions.stagedStatus.value).toBe('CONFIRMED')
+    actions.handleStatusButton('AWAITING_PICK_UP')
+    expect(actions.stagedStatus.value).toBe('AWAITING_PICK_UP')
     actions.handleStatusButton('PREPARING')
     expect(actions.stagedStatus.value).toBe('PREPARING')
     actions.handleStatusButton('PREPARING')
@@ -208,8 +206,8 @@ describe('the estimated ready time (initTime)', () => {
     expect(actions.initialSliderValue.value).toBe(0)
   })
 
-  it('shows the time left until the estimate for a confirmed order, rounded to 5 minutes', () => {
-    const { actions } = selected({ status: 'CONFIRMED', estimatedReadyTime: inMinutes(23) })
+  it('shows the time left until the estimate for an order in preparation, rounded to 5 minutes', () => {
+    const { actions } = selected({ status: 'PREPARING', estimatedReadyTime: inMinutes(23) })
     expect(actions.baseEstimatedTime.value).toEqual(new Date(inMinutes(23)))
     expect(actions.sliderDeltaMinutes.value).toBe(25)
     expect(actions.initialSliderValue.value).toBe(25)
@@ -252,7 +250,7 @@ describe('the estimated ready time (initTime)', () => {
   })
 
   it('newEstimatedTime follows the slider relative to the estimate it started from', () => {
-    const { actions } = selected({ status: 'CONFIRMED', estimatedReadyTime: inMinutes(20) })
+    const { actions } = selected({ status: 'PREPARING', estimatedReadyTime: inMinutes(20) })
     expect(actions.newEstimatedTime.value).toBe('12:20')
     actions.sliderDeltaMinutes.value = 35
     expect(actions.newEstimatedTime.value).toBe('12:35')
@@ -261,7 +259,7 @@ describe('the estimated ready time (initTime)', () => {
   })
 
   it('canSave is on when a status is staged or the slider moved, off otherwise', () => {
-    const { actions } = selected({ status: 'CONFIRMED', estimatedReadyTime: inMinutes(20) })
+    const { actions } = selected({ status: 'PREPARING', estimatedReadyTime: inMinutes(20) })
     expect(actions.canSave.value).toBeFalsy()
     actions.sliderDeltaMinutes.value = 25
     expect(actions.canSave.value).toBe(true)
@@ -275,47 +273,50 @@ describe('the estimated ready time (initTime)', () => {
 describe('quickStatusAdvance (slideover primary buttons)', () => {
   it('does nothing without a selected order', async () => {
     const { actions } = setup()
-    await actions.quickStatusAdvance('CONFIRMED')
+    await actions.quickStatusAdvance('PREPARING')
     expect(gqlFetch).not.toHaveBeenCalled()
   })
 
   it('saves the new status, updates the board, closes the panel and confirms with a toast', async () => {
     const onDone = vi.fn()
     const { actions, store } = selected(
-      { status: 'CONFIRMED', estimatedReadyTime: inMinutes(20) },
+      { status: 'PREPARING', estimatedReadyTime: inMinutes(20) },
       { onDone },
     )
     gqlFetch.mockResolvedValue(
-      updated({ id: 'o-1', status: 'PREPARING', updatedAt: 'server-time' }),
+      updated({ id: 'o-1', status: 'AWAITING_PICK_UP', updatedAt: 'server-time' }),
     )
 
-    await actions.quickStatusAdvance('PREPARING')
+    await actions.quickStatusAdvance('AWAITING_PICK_UP')
 
     expect(gqlFetch).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('updateOrder'), {
-      variables: { id: 'o-1', input: { status: 'PREPARING', estimatedReadyTime: undefined } },
+      variables: {
+        id: 'o-1',
+        input: { status: 'AWAITING_PICK_UP', estimatedReadyTime: undefined },
+      },
     })
-    expect(store.orders[0]).toMatchObject({ status: 'PREPARING', updatedAt: 'server-time' })
+    expect(store.orders[0]).toMatchObject({ status: 'AWAITING_PICK_UP', updatedAt: 'server-time' })
     expect(onDone).toHaveBeenCalledExactlyOnceWith('advance')
     expect(toasts()).toEqual([{ title: 'orders.statusAdvanced', color: 'success' }])
     expect(actions.quickActionLoading.value).toBe(false)
   })
 
   it('sends the adjusted ready time (as the shop-local time today) along with the status', async () => {
-    const { actions } = selected({ status: 'CONFIRMED', estimatedReadyTime: inMinutes(20) })
+    const { actions } = selected({ status: 'PREPARING', estimatedReadyTime: inMinutes(20) })
     actions.sliderDeltaMinutes.value = 35
-    gqlFetch.mockResolvedValue(updated({ id: 'o-1', status: 'PREPARING' }))
+    gqlFetch.mockResolvedValue(updated({ id: 'o-1', status: 'AWAITING_PICK_UP' }))
 
-    await actions.quickStatusAdvance('PREPARING')
+    await actions.quickStatusAdvance('AWAITING_PICK_UP')
 
     const { input } = gqlFetch.mock.calls[0]![1].variables
-    expect(input.status).toBe('PREPARING')
+    expect(input.status).toBe('AWAITING_PICK_UP')
     expect(input.estimatedReadyTime).toMatch(/^2026-10-04T12:35:00[+-]\d\d:\d\d$/u)
   })
 
-  it('always sends a ready time when confirming a new order (the 30 minute default is part of the save)', async () => {
+  it('always sends a ready time when confirming a new order (it goes straight to PREPARING) (the 30 minute default is part of the save)', async () => {
     const { actions } = selected({ status: 'PENDING' })
-    gqlFetch.mockResolvedValue(updated({ id: 'o-1', status: 'CONFIRMED' }))
-    await actions.quickStatusAdvance('CONFIRMED')
+    gqlFetch.mockResolvedValue(updated({ id: 'o-1', status: 'PREPARING' }))
+    await actions.quickStatusAdvance('PREPARING')
     expect(gqlFetch.mock.calls[0]![1].variables.input.estimatedReadyTime).toMatch(
       /^2026-10-04T12:30:00[+-]\d\d:\d\d$/u,
     )
@@ -330,19 +331,19 @@ describe('quickStatusAdvance (slideover primary buttons)', () => {
 
   it('shows an error toast and leaves the board and the panel alone when the save fails', async () => {
     const onDone = vi.fn()
-    const { actions, store } = selected({ status: 'CONFIRMED' }, { onDone })
+    const { actions, store } = selected({ status: 'PREPARING' }, { onDone })
     gqlFetch.mockRejectedValue(new Error('network'))
 
-    await actions.quickStatusAdvance('PREPARING')
+    await actions.quickStatusAdvance('AWAITING_PICK_UP')
 
     expect(toasts()).toEqual([{ title: 'orders.errors.updateFailed', color: 'error' }])
-    expect(store.orders[0]?.status).toBe('CONFIRMED')
+    expect(store.orders[0]?.status).toBe('PREPARING')
     expect(onDone).not.toHaveBeenCalled()
     expect(actions.quickActionLoading.value).toBe(false)
   })
 
   it('ignores a second tap while the first is saving (no double transition)', async () => {
-    const { actions } = selected({ status: 'CONFIRMED' })
+    const { actions } = selected({ status: 'PREPARING' })
     let answer: (value: unknown) => void = () => {}
     gqlFetch.mockReturnValue(
       new Promise((resolve) => {
@@ -350,20 +351,20 @@ describe('quickStatusAdvance (slideover primary buttons)', () => {
       }),
     )
 
-    const first = actions.quickStatusAdvance('PREPARING')
+    const first = actions.quickStatusAdvance('AWAITING_PICK_UP')
     expect(actions.quickActionLoading.value).toBe(true)
-    await actions.quickStatusAdvance('PREPARING')
+    await actions.quickStatusAdvance('AWAITING_PICK_UP')
     expect(gqlFetch).toHaveBeenCalledOnce()
 
-    answer(updated({ id: 'o-1', status: 'PREPARING' }))
+    answer(updated({ id: 'o-1', status: 'AWAITING_PICK_UP' }))
     await first
     expect(actions.quickActionLoading.value).toBe(false)
   })
 
   it('works without an onDone callback', async () => {
-    const { actions } = selected({ status: 'CONFIRMED' })
-    gqlFetch.mockResolvedValue(updated({ id: 'o-1', status: 'PREPARING' }))
-    await expect(actions.quickStatusAdvance('PREPARING')).resolves.toBeUndefined()
+    const { actions } = selected({ status: 'PREPARING' })
+    gqlFetch.mockResolvedValue(updated({ id: 'o-1', status: 'AWAITING_PICK_UP' }))
+    await expect(actions.quickStatusAdvance('AWAITING_PICK_UP')).resolves.toBeUndefined()
   })
 })
 
@@ -380,16 +381,16 @@ describe('quickAdvanceStatus (one tap on a card)', () => {
 
     const pending = actions.quickAdvanceStatus(store.orders[0]!)
     // Optimistic: the card has already moved while the request is in flight.
-    expect(store.orders[0]?.status).toBe('CONFIRMED')
+    expect(store.orders[0]?.status).toBe('PREPARING')
     expect(store.orders[0]?.updatedAt).toBe(NOW.toISOString())
 
-    answer(updated({ id: 'o-1', status: 'CONFIRMED', updatedAt: 'server' }))
+    answer(updated({ id: 'o-1', status: 'PREPARING', updatedAt: 'server' }))
     await pending
 
     expect(gqlFetch).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('updateOrder'), {
-      variables: { id: 'o-1', input: { status: 'CONFIRMED' } },
+      variables: { id: 'o-1', input: { status: 'PREPARING' } },
     })
-    expect(store.orders[0]).toMatchObject({ status: 'CONFIRMED', updatedAt: 'server' })
+    expect(store.orders[0]).toMatchObject({ status: 'PREPARING', updatedAt: 'server' })
     expect(toasts()).toEqual([{ title: 'orders.statusAdvanced', color: 'success' }])
   })
 
@@ -472,30 +473,33 @@ describe('dropOrderStatus (kanban drop)', () => {
 describe('updateOrder (save from the slideover)', () => {
   it('does nothing without a selected order', async () => {
     const { actions } = setup()
-    await actions.updateOrder('CONFIRMED')
+    await actions.updateOrder('PREPARING')
     expect(gqlFetch).not.toHaveBeenCalled()
   })
 
   it('saves the status, updates the board and reports "save" to the caller', async () => {
     const onDone = vi.fn()
     const { actions, store } = selected(
-      { status: 'CONFIRMED', estimatedReadyTime: inMinutes(20) },
+      { status: 'PREPARING', estimatedReadyTime: inMinutes(20) },
       { onDone },
     )
-    gqlFetch.mockResolvedValue(updated({ id: 'o-1', status: 'PREPARING' }))
+    gqlFetch.mockResolvedValue(updated({ id: 'o-1', status: 'AWAITING_PICK_UP' }))
 
-    await actions.updateOrder('PREPARING')
+    await actions.updateOrder('AWAITING_PICK_UP')
 
     expect(gqlFetch).toHaveBeenCalledExactlyOnceWith(expect.stringContaining('updateOrder'), {
-      variables: { id: 'o-1', input: { status: 'PREPARING', estimatedReadyTime: undefined } },
+      variables: {
+        id: 'o-1',
+        input: { status: 'AWAITING_PICK_UP', estimatedReadyTime: undefined },
+      },
     })
-    expect(store.orders[0]?.status).toBe('PREPARING')
+    expect(store.orders[0]?.status).toBe('AWAITING_PICK_UP')
     expect(onDone).toHaveBeenCalledExactlyOnceWith('save')
     expect(toast.add).not.toHaveBeenCalled()
   })
 
   it('can save only a new ready time (no status)', async () => {
-    const { actions } = selected({ status: 'CONFIRMED', estimatedReadyTime: inMinutes(20) })
+    const { actions } = selected({ status: 'PREPARING', estimatedReadyTime: inMinutes(20) })
     actions.sliderDeltaMinutes.value = 40
     gqlFetch.mockResolvedValue(updated({ id: 'o-1' }))
 
@@ -516,16 +520,16 @@ describe('updateOrder (save from the slideover)', () => {
   it('shows an error toast, logging in dev, and does not close the panel when the save fails', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
     const onDone = vi.fn()
-    const { actions } = selected({ status: 'CONFIRMED' }, { onDone })
+    const { actions } = selected({ status: 'PREPARING' }, { onDone })
     gqlFetch.mockRejectedValue(new Error('network'))
 
-    await actions.updateOrder('PREPARING')
+    await actions.updateOrder('AWAITING_PICK_UP')
     expect(toasts()).toEqual([{ title: 'orders.errors.updateFailed', color: 'error' }])
     expect(onDone).not.toHaveBeenCalled()
     expect(error).not.toHaveBeenCalled()
 
     setFlags({ dev: true })
-    await actions.updateOrder('PREPARING')
+    await actions.updateOrder('AWAITING_PICK_UP')
     expect(error).toHaveBeenCalledExactlyOnceWith('Update failed:', expect.any(Error))
   })
 })
@@ -537,27 +541,27 @@ describe('updateOrder: why a save fails', () => {
     ['INTERNAL_ERROR', 'orders.errors.updateFailed'],
     ['USER_ERROR', 'orders.errors.updateFailed'],
   ])('a %s answer shows %s (the slideover save)', async (code, key) => {
-    const { actions } = selected({ status: 'CONFIRMED' })
+    const { actions } = selected({ status: 'PREPARING' })
     gqlFetch.mockRejectedValue(gqlFailure(code))
-    await actions.updateOrder('PREPARING')
+    await actions.updateOrder('AWAITING_PICK_UP')
     expect(toasts()).toEqual([{ title: key, color: 'error' }])
   })
 
   it('shows the message of the code in every path that updates an order', async () => {
     const failure = gqlFailure('PAYMENT_SETTLEMENT_FAILED')
-    const { actions, store } = selected({ status: 'CONFIRMED' })
+    const { actions, store } = selected({ status: 'PREPARING' })
 
     gqlFetch.mockRejectedValue(failure)
-    await actions.quickStatusAdvance('PREPARING')
+    await actions.quickStatusAdvance('AWAITING_PICK_UP')
     await actions.quickAdvanceStatus(store.orders[0]!)
-    await actions.dropOrderStatus(store.orders[0]!, 'PREPARING')
+    await actions.dropOrderStatus(store.orders[0]!, 'AWAITING_PICK_UP')
 
     expect(toasts()).toEqual([
       { title: 'orders.errors.paymentSettlementFailed', color: 'error' },
       { title: 'orders.errors.paymentSettlementFailed', color: 'error' },
       { title: 'orders.errors.paymentSettlementFailed', color: 'error' },
     ])
-    expect(store.orders[0]?.status).toBe('CONFIRMED')
+    expect(store.orders[0]?.status).toBe('PREPARING')
   })
 
   it('says a refunded order cannot be reopened when the backend refuses to move a cancelled order (USER_ERROR)', async () => {
@@ -580,8 +584,8 @@ describe('updateOrder: why a save fails', () => {
 
   it('keeps the generic message for a USER_ERROR on any other order, and for a time-only save of a cancelled one', async () => {
     gqlFetch.mockRejectedValue(gqlFailure('USER_ERROR'))
-    const open = selected({ status: 'CONFIRMED' })
-    await open.actions.updateOrder('PREPARING')
+    const open = selected({ status: 'PREPARING' })
+    await open.actions.updateOrder('AWAITING_PICK_UP')
     const cancelled = selected({ status: 'CANCELLED', id: 'o-2' })
     cancelled.actions.sliderDeltaMinutes.value = 45
     await cancelled.actions.updateOrder()
@@ -592,15 +596,15 @@ describe('updateOrder: why a save fails', () => {
   })
 
   it('keeps the generic message when the failure is not a GraphQL error at all (network, abort)', async () => {
-    const { actions } = selected({ status: 'CONFIRMED' })
+    const { actions } = selected({ status: 'PREPARING' })
     gqlFetch.mockRejectedValue(new TypeError('Failed to fetch'))
-    await actions.updateOrder('PREPARING')
+    await actions.updateOrder('AWAITING_PICK_UP')
     expect(toasts()).toEqual([{ title: 'orders.errors.updateFailed', color: 'error' }])
   })
 
   it('is "saving" while the request is in flight: a second save is ignored', async () => {
     const onDone = vi.fn()
-    const { actions } = selected({ status: 'CONFIRMED' }, { onDone })
+    const { actions } = selected({ status: 'PREPARING' }, { onDone })
     let answer: (value: unknown) => void = () => {}
     gqlFetch.mockReturnValue(
       new Promise((resolve) => {
@@ -608,24 +612,24 @@ describe('updateOrder: why a save fails', () => {
       }),
     )
 
-    const first = actions.updateOrder('PREPARING')
+    const first = actions.updateOrder('AWAITING_PICK_UP')
     expect(actions.isSaving.value).toBe(true)
-    await actions.updateOrder('PREPARING')
+    await actions.updateOrder('AWAITING_PICK_UP')
     expect(gqlFetch).toHaveBeenCalledOnce()
 
-    answer(updated({ id: 'o-1', status: 'PREPARING' }))
+    answer(updated({ id: 'o-1', status: 'AWAITING_PICK_UP' }))
     await first
     expect(actions.isSaving.value).toBe(false)
     expect(onDone).toHaveBeenCalledOnce()
   })
 
   it('can save again after a failure', async () => {
-    const { actions } = selected({ status: 'CONFIRMED' })
+    const { actions } = selected({ status: 'PREPARING' })
     gqlFetch.mockRejectedValueOnce(new Error('network'))
-    await actions.updateOrder('PREPARING')
+    await actions.updateOrder('AWAITING_PICK_UP')
     expect(actions.isSaving.value).toBe(false)
-    gqlFetch.mockResolvedValueOnce(updated({ id: 'o-1', status: 'PREPARING' }))
-    await actions.updateOrder('PREPARING')
+    gqlFetch.mockResolvedValueOnce(updated({ id: 'o-1', status: 'AWAITING_PICK_UP' }))
+    await actions.updateOrder('AWAITING_PICK_UP')
     expect(gqlFetch).toHaveBeenCalledTimes(2)
   })
 })

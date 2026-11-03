@@ -113,7 +113,6 @@
     "orderDetailsDescription": "Consulter et gérer les informations de la commande",
     "status": {
       "pending": "En attente",
-      "confirmed": "Confirmé",
       "preparing": "En préparation",
       "awaiting_pick_up": "En attente de retrait",
       "picked_up": "Retiré",
@@ -125,7 +124,6 @@
     "statusShort": {
       "new": "Nouvelles",
       "pending": "Attente",
-      "confirmed": "Confirmé",
       "preparing": "Prépa.",
       "awaiting_pick_up": "Retrait",
       "out_for_delivery": "Livraison",
@@ -182,8 +180,7 @@
     "detailTitle": "Commande",
     "notFound": "Commande introuvable",
     "nextAction": {
-      "confirmed": "Confirmer",
-      "preparing": "Lancer la préparation",
+      "preparing": "Confirmer",
       "awaiting_pick_up": "Marquer prête",
       "out_for_delivery": "Partie en livraison",
       "picked_up": "Marquer retirée",

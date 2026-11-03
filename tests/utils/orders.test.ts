@@ -32,6 +32,7 @@ import {
   resolveDrop,
   staleOrders,
   updateOrderErrorKey,
+  statusActionLabelKey,
 } from '~/utils/orders'
 import { formatTimeOnly } from '~/utils/utils'
 import { fakeT } from '../helpers/i18n'
@@ -44,7 +45,6 @@ const column = (key: string) => KANBAN_COLUMN_DEFS.find((c) => c.key === key)!
 
 const ALL_STATUSES: OrderStatus[] = [
   'PENDING',
-  'CONFIRMED',
   'PREPARING',
   'AWAITING_PICK_UP',
   'OUT_FOR_DELIVERY',
@@ -56,8 +56,8 @@ const ALL_STATUSES: OrderStatus[] = [
 
 describe('status machine', () => {
   it.each<[OrderStatus, OrderType, OrderStatus[]]>([
-    ['PENDING', 'DELIVERY', ['CONFIRMED', 'PREPARING', 'CANCELLED']],
-    ['CONFIRMED', 'PICKUP', ['PREPARING', 'CANCELLED']],
+    ['PENDING', 'DELIVERY', ['PREPARING', 'CANCELLED']],
+    ['PENDING', 'PICKUP', ['PREPARING', 'CANCELLED']],
     ['PREPARING', 'PICKUP', ['AWAITING_PICK_UP', 'CANCELLED']],
     ['AWAITING_PICK_UP', 'DELIVERY', ['OUT_FOR_DELIVERY', 'CANCELLED']],
     ['AWAITING_PICK_UP', 'PICKUP', ['PICKED_UP', 'FAILED', 'CANCELLED']],
@@ -80,12 +80,27 @@ describe('status machine', () => {
     expect(ORDER_STATUS_CHIP_TONE.CANCELLED).toBe('danger')
   })
 
-  it('treats pending, confirmed and preparing as active', () => {
-    expect(ALL_STATUSES.filter(isActiveStatus)).toEqual(['PENDING', 'CONFIRMED', 'PREPARING'])
+  it('treats pending and preparing as active', () => {
+    expect(ALL_STATUSES.filter(isActiveStatus)).toEqual(['PENDING', 'PREPARING'])
+  })
+
+  it('labels accepting a pending order "Confirm" and any other move with its target status', () => {
+    expect(statusActionLabelKey('PENDING', 'PREPARING')).toBe('orders.nextAction.preparing')
+    expect(statusActionLabelKey('PREPARING', 'AWAITING_PICK_UP')).toBe(
+      'orders.status.awaiting_pick_up',
+    )
+    expect(statusActionLabelKey('PENDING', 'CANCELLED')).toBe('orders.status.cancelled')
+  })
+
+  it('never offers the removed confirmation status anywhere in the workflow', () => {
+    for (const status of ALL_STATUSES) {
+      expect(getAllowedStatuses(status, 'DELIVERY')).not.toContain('CONFIRMED' as OrderStatus)
+      expect(getAllowedStatuses(status, 'PICKUP')).not.toContain('CONFIRMED' as OrderStatus)
+    }
   })
 
   it('advances to the first allowed status that is not a cancel or a failure', () => {
-    expect(nextActionOf(makeOrder({ status: 'PENDING' }))).toBe('CONFIRMED')
+    expect(nextActionOf(makeOrder({ status: 'PENDING' }))).toBe('PREPARING')
     expect(nextActionOf(makeOrder({ status: 'AWAITING_PICK_UP', type: 'PICKUP' }))).toBe(
       'PICKED_UP',
     )
@@ -394,7 +409,6 @@ describe('kanban board', () => {
   const DAY = '2026-10-04'
   const orders = [
     makeOrder({ id: 'pending', status: 'PENDING' }),
-    makeOrder({ id: 'confirmed', status: 'CONFIRMED' }),
     makeOrder({ id: 'preparing', status: 'PREPARING' }),
     makeOrder({ id: 'ready', status: 'AWAITING_PICK_UP' }),
     makeOrder({ id: 'out', status: 'OUT_FOR_DELIVERY', type: 'DELIVERY' }),
@@ -411,7 +425,7 @@ describe('kanban board', () => {
   it('groups orders by status and labels the columns', () => {
     const columns = buildKanbanColumns(orders, DAY, fakeT)
     expect(columns.map((c) => [c.key, c.label, c.orders.map((o) => o.id)])).toEqual([
-      ['NEW', 'orders.statusShort.new', ['pending', 'confirmed']],
+      ['NEW', 'orders.statusShort.new', ['pending']],
       ['PREPARING', 'orders.status.preparing', ['preparing']],
       ['AWAITING_PICK_UP', 'orders.status.awaiting_pick_up', ['ready']],
       ['OUT_FOR_DELIVERY', 'orders.status.out_for_delivery', ['out']],
@@ -520,7 +534,7 @@ describe('mobile tabs', () => {
   const DAY = '2026-10-04'
   const orders = [
     makeOrder({ id: 'new-b', status: 'PENDING', createdAt: ago(10) }),
-    makeOrder({ id: 'new-a', status: 'CONFIRMED', createdAt: ago(30) }),
+    makeOrder({ id: 'new-a', status: 'PENDING', createdAt: ago(30) }),
     makeOrder({ id: 'kitchen', status: 'PREPARING', createdAt: ago(20) }),
     makeOrder({ id: 'ready', status: 'AWAITING_PICK_UP', createdAt: ago(25) }),
     makeOrder({ id: 'out', status: 'OUT_FOR_DELIVERY', createdAt: ago(15) }),
@@ -654,7 +668,7 @@ describe('why an order update failed', () => {
     it.each([
       ['cancelling a cancelled order', { currentStatus: 'CANCELLED', targetStatus: 'CANCELLED' }],
       ['a time-only save', { currentStatus: 'CANCELLED' }],
-      ['another order', { currentStatus: 'CONFIRMED', targetStatus: 'PREPARING' }],
+      ['another order', { currentStatus: 'PREPARING', targetStatus: 'AWAITING_PICK_UP' }],
       ['no context', {}],
     ] as const)('keeps the generic message for the reopen refusal on %s', (_name, context) => {
       expect(updateOrderErrorKey(REOPEN_REFUSAL, context)).toBe('orders.errors.updateFailed')

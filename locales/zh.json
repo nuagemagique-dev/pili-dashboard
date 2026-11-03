@@ -113,7 +113,6 @@
     "orderDetailsDescription": "查看和管理订单信息",
     "status": {
       "pending": "待处理",
-      "confirmed": "已确认",
       "preparing": "准备中",
       "awaiting_pick_up": "等待自取",
       "picked_up": "已自取",
@@ -125,7 +124,6 @@
     "statusShort": {
       "new": "新订单",
       "pending": "待处理",
-      "confirmed": "已确认",
       "preparing": "准备中",
       "awaiting_pick_up": "自取",
       "out_for_delivery": "配送",
@@ -182,8 +180,7 @@
     "detailTitle": "订单",
     "notFound": "未找到订单",
     "nextAction": {
-      "confirmed": "确认",
-      "preparing": "开始制作",
+      "preparing": "确认",
       "awaiting_pick_up": "标记已备好",
       "out_for_delivery": "已出发配送",
       "picked_up": "标记已取餐",

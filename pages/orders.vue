@@ -146,7 +146,7 @@
                 {{ getTimeSince(order.createdAt).text }}
               </span>
               <PiliChip
-                v-if="!isActiveStatus(order.status) || order.status === 'CONFIRMED'"
+                v-if="!isActiveStatus(order.status)"
                 :tone="ORDER_STATUS_CHIP_TONE[order.status] ?? 'neutral'"
               >
                 {{ t(`orders.status.${order.status.toLowerCase()}`) }}
@@ -480,7 +480,7 @@
               @click="quickStatusAdvance(status)"
             >
               <UIcon :name="getStatusIcon(status)" class="mr-2" />
-              {{ t(`orders.status.${status.toLowerCase()}`) }}
+              {{ t(statusActionLabelKey(selectedOrder.status, status)) }}
             </UButton>
           </div>
 
@@ -821,6 +821,7 @@ import {
   itemNames,
   itemsSubtotalCents,
   nextActionOf,
+  statusActionLabelKey,
   hasBreakdown as orderHasBreakdown,
   resolveDrop,
   type KanbanColumnDef,

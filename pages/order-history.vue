@@ -391,7 +391,6 @@ const hasMore = ref(true)
 const statusOptions = computed(() => [
   { label: t('orderHistory.allStatuses'), value: '' },
   { label: t('orders.status.pending'), value: 'PENDING' },
-  { label: t('orders.status.confirmed'), value: 'CONFIRMED' },
   { label: t('orders.status.preparing'), value: 'PREPARING' },
   { label: t('orders.status.awaiting_pick_up'), value: 'AWAITING_PICK_UP' },
   { label: t('orders.status.out_for_delivery'), value: 'OUT_FOR_DELIVERY' },
@@ -597,7 +596,6 @@ type UiColor = 'success' | 'error' | 'primary' | 'secondary' | 'info' | 'warning
 const getStatusColor = (status: string): UiColor => {
   const colors: Record<string, UiColor> = {
     PENDING: 'warning',
-    CONFIRMED: 'info',
     PREPARING: 'neutral',
     AWAITING_PICK_UP: 'success',
     OUT_FOR_DELIVERY: 'info',

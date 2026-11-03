@@ -39,8 +39,8 @@ describe('updateOrder', () => {
   it('merges the given fields into the order with the same id, keeping the others', () => {
     const store = useOrdersStore()
     store.setOrders([makeOrder({ id: 'o-1', status: 'PENDING', totalPrice: '12.50' })])
-    store.updateOrder({ id: 'o-1', status: 'CONFIRMED' })
-    expect(store.orders[0]).toMatchObject({ id: 'o-1', status: 'CONFIRMED', totalPrice: '12.50' })
+    store.updateOrder({ id: 'o-1', status: 'PREPARING' })
+    expect(store.orders[0]).toMatchObject({ id: 'o-1', status: 'PREPARING', totalPrice: '12.50' })
   })
 
   it('replaces the array entry (a new object), so watchers on the list see the change', () => {
@@ -84,7 +84,7 @@ describe('acknowledgeOrder and unacknowledgedPendingCount', () => {
   it('does not count orders that are no longer pending', () => {
     const store = useOrdersStore()
     store.addOrder(makeOrder({ id: 'new-1', status: 'PENDING' }))
-    store.addOrder(makeOrder({ id: 'new-2', status: 'CONFIRMED' }))
+    store.addOrder(makeOrder({ id: 'new-2', status: 'PREPARING' }))
     expect(store.unacknowledgedPendingCount).toBe(1)
 
     store.updateOrder({ id: 'new-1', status: 'CANCELLED' })
