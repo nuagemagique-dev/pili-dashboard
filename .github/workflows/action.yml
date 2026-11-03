@@ -360,6 +360,7 @@ jobs:
               --namespace ygf \
               -f ./charts/tokyosushi-apps/values.ygf.yaml \
               --reuse-values \
+              --set "apps.${APP}.enabled=true" \
               --set "apps.${APP}.image.repository=${REPO}" \
               --set "apps.${APP}.image.tag=${TAG}" \
               --atomic --timeout 5m
