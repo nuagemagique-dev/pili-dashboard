@@ -113,7 +113,6 @@
     "orderDetailsDescription": "Bekijk en beheer de bestelgegevens",
     "status": {
       "pending": "In afwachting",
-      "confirmed": "Bevestigd",
       "preparing": "In bereiding",
       "awaiting_pick_up": "Klaar voor afhaling",
       "picked_up": "Afgehaald",
@@ -125,7 +124,6 @@
     "statusShort": {
       "new": "Nieuwe",
       "pending": "Wacht",
-      "confirmed": "Bevestigd",
       "preparing": "Bereid.",
       "awaiting_pick_up": "Afhaling",
       "out_for_delivery": "Bezorging",
@@ -182,8 +180,7 @@
     "detailTitle": "Bestelling",
     "notFound": "Bestelling niet gevonden",
     "nextAction": {
-      "confirmed": "Bevestigen",
-      "preparing": "Bereiding starten",
+      "preparing": "Bevestigen",
       "awaiting_pick_up": "Markeer als klaar",
       "out_for_delivery": "Onderweg",
       "picked_up": "Markeer als afgehaald",

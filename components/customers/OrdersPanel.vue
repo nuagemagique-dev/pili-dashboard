@@ -139,7 +139,6 @@ const statusTone = (status: string): 'warning' | 'danger' | 'success' | 'info' |
   switch (status) {
     case 'PENDING':
       return 'warning'
-    case 'CONFIRMED':
     case 'OUT_FOR_DELIVERY':
       return 'info'
     case 'AWAITING_PICK_UP':

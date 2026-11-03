@@ -61,33 +61,13 @@ test.describe('orders board (desktop)', () => {
     mock,
   }) => {
     const slideover = await openCard(page, 'NEW', 'Alice Martin')
-    await slideover.getByRole('button', { name: message('orders.status.preparing') }).click()
+    await slideover.getByRole('button', { name: message('orders.nextAction.preparing') }).click()
 
     await expect(column(page, 'PREPARING').getByText('Alice Martin')).toBeVisible()
     await expect(column(page, 'NEW').getByText('Alice Martin')).toHaveCount(0)
     const calls = await mock.operations('updateOrder')
     expect(calls).toHaveLength(1)
     expect(calls[0]?.args).toMatchObject({ id: 'order-pending', input: { status: 'PREPARING' } })
-  })
-
-  test('confirming a pending order keeps it in the new column with its new status', async ({
-    authenticatedPage: page,
-    mock,
-  }) => {
-    await expect(
-      column(page, 'NEW').getByText(message('orders.status.pending'), { exact: true }),
-    ).toHaveCount(1)
-    const slideover = await openCard(page, 'NEW', 'Alice Martin')
-    await slideover.getByRole('button', { name: message('orders.status.confirmed') }).click()
-
-    await expect(page.getByRole('dialog')).toHaveCount(0)
-    const calls = await mock.operations('updateOrder')
-    expect(calls[0]?.args).toMatchObject({ id: 'order-pending', input: { status: 'CONFIRMED' } })
-    await expect(column(page, 'NEW').getByText('Alice Martin')).toBeVisible()
-    // The "pending" badge is gone: it was the only one in the column (Alice).
-    await expect(
-      column(page, 'NEW').getByText(message('orders.status.pending'), { exact: true }),
-    ).toHaveCount(0)
   })
 
   test('marking an order ready moves it to the pick-up column', async ({
@@ -174,8 +154,8 @@ test.describe('orders board (desktop)', () => {
       page.getByText(message('orders.errors.paymentSettlementFailed'), { exact: true }),
     ).toBeVisible()
     expect(
-      (await mock.state()).orders.find((order) => order.id === 'order-confirmed')?.status,
-    ).toBe('CONFIRMED')
+      (await mock.state()).orders.find((order) => order.id === 'order-pending-delivery')?.status,
+    ).toBe('PENDING')
   })
 
   test('a cash order can be marked as paid', async ({ authenticatedPage: page, mock }) => {

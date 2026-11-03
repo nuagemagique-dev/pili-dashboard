@@ -22,9 +22,7 @@ export const getAllowedStatuses = (
   let allowed: OrderStatus[] = []
   switch (current) {
     case 'PENDING':
-      allowed = ['CONFIRMED', 'PREPARING']
-      break
-    case 'CONFIRMED':
+      // Accepting a pending order goes straight to the kitchen (there is no intermediate status)
       allowed = ['PREPARING']
       break
     case 'PREPARING':
@@ -53,13 +51,12 @@ export const getAllowedStatuses = (
   return allowed
 }
 
-// Chip tone per order status (Pili: PENDING amber, CONFIRMED cyan, PREPARING neutral, ready/done green, cancelled red)
+// Chip tone per order status (Pili: PENDING amber, PREPARING neutral, ready/done green, cancelled red)
 export const ORDER_STATUS_CHIP_TONE: Record<
   string,
   'warning' | 'danger' | 'success' | 'info' | 'neutral'
 > = {
   PENDING: 'warning',
-  CONFIRMED: 'info',
   PREPARING: 'neutral',
   AWAITING_PICK_UP: 'success',
   OUT_FOR_DELIVERY: 'info',
@@ -70,16 +67,24 @@ export const ORDER_STATUS_CHIP_TONE: Record<
 }
 
 export const isActiveStatus = (status: OrderStatus): boolean =>
-  ['PENDING', 'CONFIRMED', 'PREPARING'].includes(status)
+  ['PENDING', 'PREPARING'].includes(status)
 
 /** The status the one-tap "next" button moves an order to (the first allowed one that is not cancel / failed). */
 export const nextActionOf = (order: Order): OrderStatus | undefined =>
   getAllowedStatuses(order.status, order.type).find((s) => s !== 'CANCELLED' && s !== 'FAILED')
 
+/**
+ * i18n key of the button that moves an order from `current` to `target`. Accepting a pending order reads "Confirm"
+ * (it goes straight to PREPARING); every other move is labelled with the target status.
+ */
+export const statusActionLabelKey = (current: OrderStatus, target: OrderStatus): string =>
+  current === 'PENDING' && target === 'PREPARING'
+    ? 'orders.nextAction.preparing'
+    : `orders.status.${target.toLowerCase()}`
+
 export const getStatusIcon = (status: OrderStatus): string => {
   const statusIcons: Record<string, string> = {
     PENDING: 'i-lucide-clock',
-    CONFIRMED: 'i-lucide-circle-check',
     PREPARING: 'i-lucide-chef-hat',
     AWAITING_PICK_UP: 'i-lucide-hourglass',
     OUT_FOR_DELIVERY: 'i-lucide-bike',
@@ -94,7 +99,6 @@ export const getStatusIcon = (status: OrderStatus): string => {
 export const getStatusColor = (status: OrderStatus): UiColor => {
   const colors: Record<string, UiColor> = {
     PENDING: 'warning',
-    CONFIRMED: 'info',
     PREPARING: 'neutral',
     AWAITING_PICK_UP: 'success',
     OUT_FOR_DELIVERY: 'info',
@@ -274,7 +278,7 @@ export interface KanbanColumnDef {
 }
 
 export const KANBAN_COLUMN_DEFS: KanbanColumnDef[] = [
-  { key: 'NEW', statuses: ['PENDING', 'CONFIRMED'], dropStatus: null, icon: 'i-lucide-inbox' },
+  { key: 'NEW', statuses: ['PENDING'], dropStatus: null, icon: 'i-lucide-inbox' },
   { key: 'PREPARING', statuses: ['PREPARING'], dropStatus: 'PREPARING', icon: 'i-lucide-chef-hat' },
   {
     key: 'AWAITING_PICK_UP',
@@ -353,7 +357,7 @@ export const resolveDrop = (order: Order, column: KanbanColumnDef): DropDecision
 export type MobileTab = 'new' | 'kitchen' | 'out' | 'done'
 
 export const MOBILE_TABS: { key: MobileTab; statuses: OrderStatus[] }[] = [
-  { key: 'new', statuses: ['PENDING', 'CONFIRMED'] },
+  { key: 'new', statuses: ['PENDING'] },
   { key: 'kitchen', statuses: ['PREPARING'] },
   { key: 'out', statuses: ['AWAITING_PICK_UP', 'OUT_FOR_DELIVERY'] },
   { key: 'done', statuses: ['DELIVERED', 'PICKED_UP', 'CANCELLED'] },

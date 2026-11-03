@@ -33,13 +33,13 @@ test.describe('orders (phone)', () => {
     mock,
   }) => {
     await page
-      .getByRole('button', { name: new RegExp(message('orders.nextAction.confirmed'), 'u') })
+      .getByRole('button', { name: new RegExp(message('orders.nextAction.preparing'), 'u') })
       .first()
       .click()
 
     await expect.poll(async () => (await mock.operations('updateOrder')).length).toBe(1)
     const [call] = await mock.operations('updateOrder')
-    expect(call?.args).toMatchObject({ input: { status: 'CONFIRMED' } })
+    expect(call?.args).toMatchObject({ input: { status: 'PREPARING' } })
     await expect(page.getByText(message('orders.statusAdvanced'), { exact: true })).toBeVisible()
   })
 
@@ -48,13 +48,13 @@ test.describe('orders (phone)', () => {
   }) => {
     await card(page, 'Bob Dupont').click()
 
-    await expect(page).toHaveURL(/\/fr\/orders\/order-confirmed$/u)
+    await expect(page).toHaveURL(/\/fr\/orders\/order-pending-delivery$/u)
     await expect(page.getByRole('heading', { name: 'Bob Dupont' })).toBeVisible()
     await expect(page.getByText('Sushi thon')).toBeVisible()
     await expect(page.getByText('Cola')).toBeVisible()
     await expect(page.getByText('17,50').first()).toBeVisible()
     await expect(
-      page.getByRole('button', { name: message('orders.status.preparing') }),
+      page.getByRole('button', { name: message('orders.nextAction.preparing') }),
     ).toBeVisible()
   })
 

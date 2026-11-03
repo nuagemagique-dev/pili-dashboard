@@ -113,7 +113,6 @@
     "orderDetailsDescription": "View and manage order information",
     "status": {
       "pending": "Pending",
-      "confirmed": "Confirmed",
       "preparing": "Preparing",
       "awaiting_pick_up": "Awaiting Pickup",
       "picked_up": "Picked Up",
@@ -125,7 +124,6 @@
     "statusShort": {
       "new": "New",
       "pending": "Pending",
-      "confirmed": "Confirmed",
       "preparing": "Prep.",
       "awaiting_pick_up": "Pickup",
       "out_for_delivery": "Delivery",
@@ -182,8 +180,7 @@
     "detailTitle": "Order",
     "notFound": "Order not found",
     "nextAction": {
-      "confirmed": "Confirm",
-      "preparing": "Start preparing",
+      "preparing": "Confirm",
       "awaiting_pick_up": "Mark ready",
       "out_for_delivery": "Out for delivery",
       "picked_up": "Mark picked up",

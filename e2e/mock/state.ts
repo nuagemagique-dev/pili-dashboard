@@ -223,8 +223,8 @@ export const DEFAULT_ORDERS: OrderSeed[] = [
     lines: [{ product: 'prod-saumon', quantity: 4 }],
   },
   {
-    id: 'order-confirmed',
-    status: 'CONFIRMED',
+    id: 'order-pending-delivery',
+    status: 'PENDING',
     type: 'DELIVERY',
     customer: 'Bob Dupont',
     minutesAgo: 9,

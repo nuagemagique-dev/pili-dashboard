@@ -303,7 +303,7 @@
           >
             {{
               idx === barStatuses.length - 1
-                ? t(`orders.status.${status.toLowerCase()}`)
+                ? t(statusActionLabelKey(order.status, status))
                 : t(`orders.nextAction.${status.toLowerCase()}`)
             }}
           </button>
@@ -324,6 +324,7 @@ import {
   isActiveStatus,
   itemNames,
   itemsSubtotalCents,
+  statusActionLabelKey,
 } from '~/utils/orders'
 import { centsToEuros } from '~/utils/money'
 
