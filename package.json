@@ -18,7 +18,7 @@
     "prepare": "vp config"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.149",
+    "@iconify-json/lucide": "^1.2.150",
     "@nuxt/ui": "^4.12.0",
     "@pinia/nuxt": "^1.0.3",
     "graphql-ws": "^6.4.1",
@@ -42,7 +42,7 @@
     "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
     "vite-plus": "1.4.0",
     "vue-tsc": "^3.3.14",
-    "ws": "^8.22.0"
+    "ws": "^8.22.1"
   },
   "devEngines": {
     "packageManager": {
