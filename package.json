@@ -18,7 +18,7 @@
     "prepare": "vp config"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.150",
+    "@iconify-json/lucide": "^1.2.151",
     "@nuxt/ui": "^4.12.0",
     "@pinia/nuxt": "^1.0.3",
     "graphql-ws": "^6.4.1",
@@ -30,12 +30,12 @@
   "devDependencies": {
     "@nuxt/test-utils": "^4.3.4",
     "@nuxtjs/i18n": "^10.6.0",
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "^1.65.0",
     "@types/node": "^24.19.2",
     "@types/ws": "^8.18.2",
     "@vitest/coverage-v8": "5.0.5",
     "@vue/test-utils": "^2.5.1",
-    "graphql": "^17.0.2",
+    "graphql": "^17.1.0",
     "happy-dom": "^21.0.4",
     "tailwindcss": "^4.3.4",
     "typescript": "^6.0.3",
