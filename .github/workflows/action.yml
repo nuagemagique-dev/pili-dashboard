@@ -14,6 +14,11 @@ on:
         required: true
         type: string
 
+# Every job only reads the repository with GITHUB_TOKEN: GHCR logins use the
+# PAT secret and deploys go over SSH, so no job needs a write scope.
+permissions:
+  contents: read
+
 env:
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME_TSB: ${{ github.repository_owner }}/pili-dashboard-tsb
