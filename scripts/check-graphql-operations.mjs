@@ -89,7 +89,7 @@ export function listSources(dir) {
 function codeBlocks(file, text) {
   if (extname(file) !== '.vue') return [{ code: text, offset: 0 }]
   const blocks = []
-  for (const m of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/g)) {
+  for (const m of text.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\b[^>]*>/gi)) {
     blocks.push({
       code: m[1],
       offset: text.slice(0, m.index + m[0].indexOf('>') + 1).split('\n').length - 1,
