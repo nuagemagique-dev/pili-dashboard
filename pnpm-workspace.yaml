@@ -2,7 +2,7 @@ allowBuilds:
   esbuild: true
   vue-demi: true
 overrides:
-  vite: npm:@voidzero-dev/vite-plus-core@1.5.0
+  vite: npm:@voidzero-dev/vite-plus-core@1.5.1
 # Packages the app imports but whose version belongs to a framework package:
 # nuxt (vue, vue-router, ohash, ofetch), @pinia/nuxt (pinia) and @nuxtjs/i18n
 # (vue-i18n). They are hoisted from that package's tree instead of declared in
