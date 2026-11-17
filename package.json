@@ -30,7 +30,7 @@
   "devDependencies": {
     "@nuxt/test-utils": "^4.4.0",
     "@nuxtjs/i18n": "^10.6.0",
-    "@playwright/test": "^1.65.0",
+    "@playwright/test": "^1.65.1",
     "@types/node": "^24.19.2",
     "@types/ws": "^8.18.2",
     "@vitest/coverage-v8": "5.1.0",
