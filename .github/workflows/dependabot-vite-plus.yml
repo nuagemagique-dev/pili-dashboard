@@ -2,7 +2,7 @@ name: Dependabot Vite+ pins
 
 # Completes Dependabot's `vite-plus` group PR. Dependabot bumps vite-plus and
 # @voidzero-dev/* but cannot move the pins that must follow them: the `vite`
-# alias (npm:@voidzero-dev/vite-plus-core@<version>, in package.json and in the
+# alias (npm:@voidzero-dev/vite-plus-core@<the release vite-plus depends on>, in package.json and in the
 # pnpm-workspace.yaml overrides) and @vitest/coverage-v8 and vitest (the vitest
 # that vite-plus bundles). This job moves them
 # (scripts/sync-vite-plus-pins.mjs), refreshes the

@@ -1,5 +1,5 @@
-// Dependabot bumps vite-plus and @voidzero-dev/* as one group, but some pins stay behind: the `vite` alias (vite-plus-core
-// of the same release, declared in package.json devDependencies and in the pnpm-workspace.yaml overrides) and
+// Dependabot bumps vite-plus and @voidzero-dev/* as one group, but some pins stay behind: the `vite` alias (the vite-plus-core
+// release vite-plus depends on, read from the registry since 1.7.0 ships core 8.3.8000; declared in package.json devDependencies and in the pnpm-workspace.yaml overrides) and
 // @vitest/coverage-v8 and vitest (the vitest vite-plus bundles). .github/workflows/dependabot-vite-plus.yml moves them on the Dependabot PR with sync-vite-plus-pins.mjs.
 
 /**
@@ -21,6 +21,15 @@ function parseManifest(text) {
   /** @type {unknown} */
   const value = JSON.parse(text)
   return typeof value === 'object' && value !== null ? { ...value } : {}
+}
+
+/**
+ * The vite-plus version package.json declares in devDependencies.
+ * @param {string} pkgText package.json
+ * @returns {string | undefined}
+ */
+export function declaredVitePlus(pkgText) {
+  return parseManifest(pkgText).devDependencies?.['vite-plus']
 }
 
 /**
@@ -58,12 +67,15 @@ function bundledVitest(lockText, vitePlus) {
 /**
  * package.json and pnpm-workspace.yaml texts with the `vite` alias, @vitest/coverage-v8 and vitest moved to the
  * vite-plus release package.json declares. Returns the texts unchanged when both pins already hold.
- * @param {string} pkgText package.json
- * @param {string} lockText pnpm-lock.yaml, as Dependabot left it
- * @param {string} workspaceText pnpm-workspace.yaml
+ * @param {object} texts
+ * @param {string} texts.pkgText package.json
+ * @param {string} texts.lockText pnpm-lock.yaml, as Dependabot left it
+ * @param {string} texts.workspaceText pnpm-workspace.yaml
+ * @param {string} texts.coreSpec the `vite` dependency the declared vite-plus release publishes
+ *   (`npm view vite-plus@<version> dependencies.vite`), e.g. `npm:@voidzero-dev/vite-plus-core@8.3.8000`
  * @returns {Pins}
  */
-export function syncedPins(pkgText, lockText, workspaceText) {
+export function syncedPins({ pkgText, lockText, workspaceText, coreSpec }) {
   const pkg = parseManifest(pkgText)
   const declared = pkg.devDependencies?.['vite-plus']
   const override = VITE_OVERRIDE.exec(workspaceText)?.groups?.value
@@ -74,7 +86,12 @@ export function syncedPins(pkgText, lockText, workspaceText) {
   }
 
   let workspace = workspaceText
-  const core = `npm:@voidzero-dev/vite-plus-core@${declared}`
+  if (!/^npm:@voidzero-dev\/vite-plus-core@[\w.+-]+$/u.test(coreSpec)) {
+    throw new Error(
+      `vite-plus@${declared} declares vite as ${JSON.stringify(coreSpec)}, not a vite-plus-core release`,
+    )
+  }
+  const core = coreSpec
   if (override !== core) {
     workspace = workspace.replace(VITE_OVERRIDE, `$<key>${core}`)
   }
