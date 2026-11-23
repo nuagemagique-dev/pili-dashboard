@@ -18,10 +18,10 @@
     "prepare": "vp config"
   },
   "dependencies": {
-    "@iconify-json/lucide": "^1.2.155",
-    "@nuxt/ui": "^4.12.2",
+    "@iconify-json/lucide": "^1.2.157",
+    "@nuxt/ui": "^4.13.0",
     "@pinia/nuxt": "^1.0.3",
-    "graphql-ws": "^6.4.2",
+    "graphql-ws": "^6.4.3",
     "nuxt": "4.6.4",
     "oidc-client-ts": "^3.5.0",
     "pinia-plugin-persistedstate": "^4.7.1",
