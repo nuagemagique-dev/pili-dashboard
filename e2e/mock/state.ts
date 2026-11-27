@@ -127,6 +127,7 @@ export function productOf(seed: ProductSeed): Json {
     isSpicy: false,
     isVegetarian: false,
     isDiscountable: true,
+    imageUpdatedAt: '2026-11-27T10:00:00Z',
     vatCategory: 'food',
     name: seed.name,
     description: null,

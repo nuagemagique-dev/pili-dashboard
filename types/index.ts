@@ -57,6 +57,8 @@ export interface Product {
   id: string
   isAvailable: boolean
   isDiscountable: boolean
+  /** When the image was last stored, null if never. Versions the image URL. */
+  imageUpdatedAt?: string | null
   isHalal: boolean
   isLunchOnly: boolean
   isSpicy: boolean

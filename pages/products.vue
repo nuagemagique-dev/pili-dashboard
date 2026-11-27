@@ -442,6 +442,7 @@
 <script lang="ts" setup>
 import type { CreateProductInput, Product, ProductCategory, UpdateProductRequest } from '~/types'
 import { buildGraphqlUpload } from '~/utils/graphqlUpload'
+import { productThumbnailUrl } from '~/utils/productImage'
 import { computed, ref, watch } from 'vue'
 import {
   useCategoriesStore,
@@ -487,14 +488,8 @@ const getFlagEmoji = (lang: string) => {
   }
 }
 
-const imageCacheBust = reactive<Record<string, number>>({})
-
-// Helper: Get product thumbnail URL
-const getProductImageUrl = (product: Product) => {
-  if (!s3bucketUrl || !product.id) return null
-  const bust = imageCacheBust[product.id]
-  return `${s3bucketUrl}/images/thumbnails/${product.id}.png${bust ? `?v=${bust}` : ''}`
-}
+// Helper: Get product thumbnail URL, versioned so a replaced image shows at once.
+const getProductImageUrl = (product: Product) => productThumbnailUrl(s3bucketUrl, product)
 
 const searchQuery = ref('')
 const selectedCategoryId = ref<string | null>(null)
@@ -562,6 +557,7 @@ const PRODUCTS_QUERY = /* GraphQL */ `
       isSpicy
       isVegetarian
       isDiscountable
+      imageUpdatedAt
       vatCategory
       name
       description
@@ -621,6 +617,7 @@ const CREATE_PRODUCT_MUTATION = /* GraphQL */ `
       isSpicy
       isVegetarian
       isDiscountable
+      imageUpdatedAt
       vatCategory
       name
       description
@@ -664,6 +661,7 @@ const UPDATE_PRODUCT_MUTATION = /* GraphQL */ `
       isSpicy
       isVegetarian
       isDiscountable
+      imageUpdatedAt
       vatCategory
       name
       description
@@ -717,6 +715,7 @@ const SUB_PRODUCT_UPDATED = /* GraphQL */ `
       isSpicy
       isVegetarian
       isDiscountable
+      imageUpdatedAt
       vatCategory
       name
       slug
@@ -975,7 +974,6 @@ const handleUpdate = async (updateReq: UpdateProductRequest) => {
       }
 
       updated = res.data.updateProduct
-      imageCacheBust[updated.id] = Date.now()
     } else {
       const { mutate: mutationUpdateProduct } = useGqlMutation<{ updateProduct: Product }>(
         UPDATE_PRODUCT_MUTATION,

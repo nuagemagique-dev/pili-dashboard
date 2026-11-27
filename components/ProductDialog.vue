@@ -464,6 +464,7 @@ import type {
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useCategoriesStore } from '~/stores/categories'
 import { splitEmptyChoiceGroups } from '~/utils/choiceGroups'
+import { productThumbnailUrl } from '~/utils/productImage'
 import { useI18n } from 'vue-i18n'
 
 // Props and emits definition.
@@ -1102,8 +1103,8 @@ const saveLabel = computed(() => (mode === 'create' ? t('common.create') : t('co
 // ----- Image Preview / Upload Section -----
 const config = useRuntimeConfig()
 // Compute the image URL based on the product ID.
-const imageUrl = computed(() =>
-  product?.id ? `${config.public.s3bucketUrl}/images/thumbnails/${product.id}.png` : '',
+const imageUrl = computed(
+  () => productThumbnailUrl(config.public.s3bucketUrl as string, product) ?? '',
 )
 
 // Flag indicating if the image exists.
